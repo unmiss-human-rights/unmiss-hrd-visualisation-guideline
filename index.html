@@ -1187,7 +1187,7 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
       <div class="swatch-meta">
         <div class="swatch-label">Unidentified and/or opportunistic armed elements</div>
         <div class="swatch-hex">#78909C · Steel Grey</div>
-        <div class="swatch-use">Medium steel grey. Unknown or opportunistic elements. Lower visual weight reflects smaller share.</div>
+        <div class="swatch-use">Medium steel grey. Unidentified and/or opportunistic armed elements. Lower visual weight reflects smaller share.</div>
       </div>
     </div>
   </div>
@@ -1799,7 +1799,7 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
         <div class="chart-hd-left">
           <div class="chart-hd-badge">Multi-Line Time Series · Perpetrator Palette</div>
           <h4>Monthly Victims by Perpetrator Group — Jan 2023 to Mar 2026</h4>
-          <p>39-month trend analysis · Three perpetrator categories</p>
+          <p>39-month trend analysis · Community-based militias and/or civil defense groups; Conventional parties and other armed groups; Unidentified and/or opportunistic armed elements</p>
         </div>
       </div>
       <div class="chart-bd">
@@ -1809,7 +1809,7 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
           <div class="lg-item"><div class="lg-swatch" style="background:#78909C"></div>Unidentified and/or opportunistic armed elements</div>
         </div>
         <div style="position:relative;width:100%;height:250px">
-          <canvas id="c4" role="img" aria-label="Multi-line chart showing monthly victims by perpetrator group, January 2023 to March 2026."></canvas>
+          <canvas id="c4" role="img" aria-label="Multi-line chart: monthly victims for Community-based militias and/or civil defense groups; Conventional parties and other armed groups; Unidentified and/or opportunistic armed elements. January 2023 to March 2026."></canvas>
         </div>
       </div>
       <div class="chart-ft">Source: UNMISS HRD · Jan 2023 – Mar 2026 · Monthly verified victim counts</div>
@@ -2218,15 +2218,15 @@ new Chart(document.getElementById('c3'), {
 
 /* ── CHART 4: Monthly trend ── */
 const mths=['Jan 23','Feb 23','Mar 23','Apr 23','May 23','Jun 23','Jul 23','Aug 23','Sep 23','Oct 23','Nov 23','Dec 23','Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
-const cbm=[415,132,300,271,264,222,80,229,168,183,230,325,207,250,339,311,293,279,110,132,313,249,126,292,222,318,523,287,551,198,538,157,136,196,144,47,181,263,466];
-const conv=[20,18,12,40,15,24,30,71,26,15,43,14,21,36,20,15,85,44,95,36,19,58,52,40,20,69,104,187,173,78,51,130,56,152,193,72,199,75,101];
-const unid=[3,3,17,0,32,3,6,7,6,23,6,21,15,9,16,7,19,9,30,22,35,10,21,15,317,10,24,12,11,21,47,19,19,12,7,7,21,10,39];
+const communityBasedMilitiasAndOrCivilDefenseGroups=[415,132,300,271,264,222,80,229,168,183,230,325,207,250,339,311,293,279,110,132,313,249,126,292,222,318,523,287,551,198,538,157,136,196,144,47,181,263,466];
+const conventionalPartiesAndOtherArmedGroups=[20,18,12,40,15,24,30,71,26,15,43,14,21,36,20,15,85,44,95,36,19,58,52,40,20,69,104,187,173,78,51,130,56,152,193,72,199,75,101];
+const unidentifiedAndOrOpportunisticArmedElements=[3,3,17,0,32,3,6,7,6,23,6,21,15,9,16,7,19,9,30,22,35,10,21,15,317,10,24,12,11,21,47,19,19,12,7,7,21,10,39];
 new Chart(document.getElementById('c4'), {
   type:'line',
   data:{ labels:mths, datasets:[
-    { label:'Community-based militias and/or civil defense groups', data:cbm, borderColor:'#B45309', backgroundColor:'rgba(180,83,9,.08)', fill:true, tension:.3, pointRadius:1.5, borderWidth:2.5 },
-    { label:'Conventional parties and other armed groups', data:conv, borderColor:'#374151', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:2, borderDash:[5,3] },
-    { label:'Unidentified and/or opportunistic armed elements', data:unid, borderColor:'#78909C', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:1.5, borderDash:[2,4] }
+    { label:'Community-based militias and/or civil defense groups', data:communityBasedMilitiasAndOrCivilDefenseGroups, borderColor:'#B45309', backgroundColor:'rgba(180,83,9,.08)', fill:true, tension:.3, pointRadius:1.5, borderWidth:2.5 },
+    { label:'Conventional parties and other armed groups', data:conventionalPartiesAndOtherArmedGroups, borderColor:'#374151', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:2, borderDash:[5,3] },
+    { label:'Unidentified and/or opportunistic armed elements', data:unidentifiedAndOrOpportunisticArmedElements, borderColor:'#78909C', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:1.5, borderDash:[2,4] }
   ]},
   options:{ responsive:true, maintainAspectRatio:false,
     plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:9}, boxWidth:14, boxHeight:8, padding:10 } } },
