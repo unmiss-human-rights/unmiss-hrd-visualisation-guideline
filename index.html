@@ -31,25 +31,41 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   --shadow-md:  0 4px 16px rgba(13,31,60,.10), 0 0 0 1px rgba(13,31,60,.06);
   --shadow-lg:  0 12px 40px rgba(13,31,60,.14), 0 0 0 1px rgba(13,31,60,.07);
   --transition: 0.22s cubic-bezier(.4,0,.2,1);
+  --float-glass: rgba(255,255,255,.72);
+  --float-border: rgba(13,31,60,.1);
+  --float-shadow: 0 8px 32px rgba(13,31,60,.12), 0 2px 8px rgba(13,31,60,.08), inset 0 1px 0 rgba(255,255,255,.85);
 
   /* ── VIOLATION PALETTE (cool blues/purples/greens) */
-  --vk: #0D1F3C;   /* Killed    – midnight navy    */
-  --vi: #1565C0;   /* Injured   – cobalt blue      */
-  --va: #00695C;   /* Abducted  – dark emerald     */
-  --vc: #4527A0;   /* CRSV      – deep indigo      */
-  --vs: #6A1B4D;   /* SGBV      – deep wine        */
-  --vd: #2E7D32;   /* Arbitrary – forest green     */
+  --vk: #0D1F3C;
+  --vi: #1565C0;
+  --va: #00695C;
+  --vc: #4527A0;
+  --vs: #6A1B4D;
+  --vd: #2E7D32;
 
-  /* ── PERPETRATOR PALETTE (warm/neutral — fully distinct) */
-  --pa: #B45309;   /* Community-based militias and/or civil defense groups — dark amber */
-  --pb: #374151;   /* Conventional parties and other armed groups — slate */
-  --pc: #78909C;   /* Unidentified and/or opportunistic armed elements — steel grey */
+  /* ── PERPETRATOR PALETTE */
+  --pa: #B45309;
+  --pb: #374151;
+  --pc: #78909C;
 
-  /* ── GENDER PALETTE (vivid, distinct from both above) */
-  --gm: #0277BD;   /* Men   – ocean blue           */
-  --gw: #C2185B;   /* Women – deep raspberry       */
-  --gb: #4FC3F7;   /* Boys  – sky blue             */
-  --gg: #F48FB1;   /* Girls – blush pink           */
+  /* ── GENDER PALETTE */
+  --gm: #0277BD;
+  --gw: #C2185B;
+  --gb: #4FC3F7;
+  --gg: #F48FB1;
+}
+html[data-theme="dark"]{
+  --bg:#0a0f18;
+  --text:#e8edf5;
+  --text-2:#a8b4c8;
+  --text-3:#6b7c94;
+  --border:#243049;
+  --border-2:#2d3d5c;
+  --navy-soft:#151d2e;
+  --white:#111827;
+  --float-glass:rgba(17,24,39,.78);
+  --float-border:rgba(255,255,255,.08);
+  --float-shadow:0 12px 48px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
 }
 
 /* ─────────────────────────────────────────────
@@ -64,83 +80,218 @@ body{
   background:var(--bg);
   overflow-x:hidden;
   overflow-anchor:none;
+  transition:background .35s ease,color .2s ease;
+}
+body::before{
+  content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 100% -20%,rgba(45,107,228,.12),transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 100%,rgba(126,173,238,.1),transparent 50%);
+  opacity:.9;
+}
+html[data-theme="dark"] body::before{
+  opacity:.45;
+  background:
+    radial-gradient(ellipse 70% 50% at 100% 0%,rgba(45,107,228,.18),transparent 50%),
+    radial-gradient(ellipse 50% 40% at 0% 100%,rgba(126,173,238,.08),transparent 45%);
 }
 
 /* ─────────────────────────────────────────────
-   SIDEBAR
+   FLOATING NAV (fixed, glass, always available)
 ───────────────────────────────────────────── */
-.sidebar{
-  position:fixed;top:0;left:0;
-  width:230px;height:100vh;
-  background:var(--navy);
-  overflow-y:auto;overflow-x:hidden;
-  z-index:200;
-  display:flex;flex-direction:column;
+.float-nav{
+  position:fixed;
+  z-index:500;
+  top:50%;
+  right:20px;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:10px;
+  pointer-events:none;
 }
-.sidebar::-webkit-scrollbar{width:3px}
-.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
-
-.sidebar-header{
-  padding:28px 20px 20px;
-  border-bottom:1px solid rgba(255,255,255,.08);
+.float-nav > *{pointer-events:auto}
+.float-nav__panel{
+  width:min(300px,calc(100vw - 40px));
+  max-height:min(88vh,860px);
+  display:flex;
+  flex-direction:column;
+  background:var(--float-glass);
+  backdrop-filter:blur(20px) saturate(1.4);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);
+  border:1px solid var(--float-border);
+  border-radius:20px;
+  box-shadow:var(--float-shadow);
+  overflow:hidden;
+  transition:transform .38s cubic-bezier(.34,1.2,.64,1),opacity .25s ease,box-shadow .3s ease;
+}
+.float-nav__panel:hover{box-shadow:0 16px 48px rgba(13,31,60,.16),0 4px 12px rgba(13,31,60,.1),inset 0 1px 0 rgba(255,255,255,.9)}
+html[data-theme="dark"] .float-nav__panel:hover{box-shadow:0 16px 56px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+.float-nav__head{
+  padding:16px 16px 12px;
+  border-bottom:1px solid var(--border);
   flex-shrink:0;
+  background:rgba(13,31,60,.04);
 }
-.sidebar-un{
-  width:28px;height:28px;
-  background:rgba(255,255,255,.12);
-  border-radius:50%;
-  margin-bottom:12px;
-  display:flex;align-items:center;justify-content:center;
+html[data-theme="dark"] .float-nav__head{background:rgba(0,0,0,.25)}
+.float-nav__head img{max-height:40px;width:auto;object-fit:contain}
+.float-nav__meta{
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);margin-top:8px;line-height:1.35;
 }
-.sidebar-un svg{width:16px;height:16px;fill:rgba(255,255,255,.7)}
-.sidebar-org{
-  font-size:9px;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(255,255,255,.38);
-  line-height:1.4;margin-bottom:4px;
+.float-nav__title{
+  font-size:12px;font-weight:600;color:var(--text);line-height:1.35;margin-top:2px;
 }
-.sidebar-title{
-  font-size:12.5px;font-weight:600;
-  color:rgba(255,255,255,.85);line-height:1.4;
+.float-nav__toolbar{
+  display:flex;align-items:center;gap:8px;margin-top:12px;
 }
+.float-nav__icon-btn{
+  flex:1;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+  background:var(--white);color:var(--text);
+  font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;
+  transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.float-nav__icon-btn:hover{
+  border-color:var(--blue-acc);
+  box-shadow:0 4px 14px rgba(45,107,228,.2);
+  transform:translateY(-1px);
+}
+.float-nav__icon-btn svg{width:16px;height:16px;flex-shrink:0}
+.float-nav__scroll{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:8px 0 16px;
+  -webkit-overflow-scrolling:touch;
+}
+.float-nav__scroll::-webkit-scrollbar{width:4px}
+.float-nav__scroll::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px}
 
-.nav-section{padding:16px 0 0}
+.nav-section{padding:4px 0 0}
 .nav-group-label{
-  font-size:8.5px;font-weight:700;
+  font-size:8px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(255,255,255,.28);
-  padding:0 20px 6px;
-  margin-top:8px;
+  color:var(--text-3);
+  padding:10px 16px 4px;
+  margin-top:4px;
 }
 .nav-link{
   display:flex;align-items:center;gap:8px;
-  padding:7px 20px;
-  font-size:12px;font-weight:400;
-  color:rgba(255,255,255,.55);
+  padding:8px 16px;
+  margin:0 8px;border-radius:10px;
+  font-size:12px;font-weight:500;
+  color:var(--text-2);
   text-decoration:none;
-  border-left:2px solid transparent;
-  transition:all var(--transition);
+  border:1px solid transparent;
+  transition:background .2s ease,color .2s ease,transform .15s ease,border-color .2s ease,box-shadow .2s ease;
   cursor:pointer;position:relative;
 }
-.nav-link::after{
-  content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);
-  width:4px;height:4px;border-radius:50%;
-  background:var(--blue-acc);opacity:0;
-  transition:opacity var(--transition);
+.nav-link::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:0;border-radius:0 3px 3px 0;background:var(--blue-acc);
+  transition:height .22s ease;
 }
-.nav-link:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.06);border-left-color:rgba(255,255,255,.2)}
-.nav-link.active{color:#fff;background:rgba(45,107,228,.18);border-left-color:var(--blue-acc);font-weight:500}
-.nav-link.active::after{opacity:1}
+.nav-link:hover{
+  color:var(--text);
+  background:rgba(45,107,228,.08);
+  border-color:rgba(45,107,228,.12);
+  transform:translateX(-2px);
+}
+.nav-link:hover::before{height:60%}
+.nav-link.active{
+  color:var(--navy);
+  background:rgba(45,107,228,.14);
+  border-color:rgba(45,107,228,.25);
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(45,107,228,.12);
+}
+html[data-theme="dark"] .nav-link.active{color:var(--text)}
+.nav-link.active::before{height:70%}
 .nav-num{
   font-family:'IBM Plex Mono',monospace;
-  font-size:9px;color:rgba(255,255,255,.25);
-  width:18px;flex-shrink:0;
+  font-size:9px;color:var(--text-3);
+  width:20px;flex-shrink:0;
+}
+.nav-link.active .nav-num{color:var(--blue-acc)}
+
+.nav-search-wrap{position:relative;padding:0 12px 10px;margin:0 8px;border-bottom:1px solid var(--border)}
+.nav-search{
+  width:100%;padding:9px 10px 9px 34px;border-radius:12px;
+  border:1px solid var(--border);background:var(--white);color:var(--text);
+  font-size:12px;font-family:inherit;outline:none;
+  transition:border-color var(--transition),box-shadow .2s ease;
+}
+.nav-search:focus{
+  border-color:rgba(45,107,228,.5);
+  box-shadow:0 0 0 3px rgba(45,107,228,.12);
+}
+.nav-search::placeholder{color:var(--text-3)}
+.nav-search-icon{
+  position:absolute;left:22px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;opacity:.4;pointer-events:none;
+}
+
+/* FAB (mobile) */
+.float-nav__fab{
+  display:none;
+  align-items:center;justify-content:center;gap:8px;
+  padding:14px 20px;border-radius:999px;
+  border:none;
+  background:linear-gradient(135deg,var(--navy) 0%,#1a2f54 100%);
+  color:#fff;font-size:13px;font-weight:600;font-family:inherit;
+  cursor:pointer;
+  box-shadow:0 8px 28px rgba(13,31,60,.35),0 0 0 1px rgba(255,255,255,.1) inset;
+  transition:transform .25s cubic-bezier(.34,1.4,.64,1),box-shadow .25s ease;
+}
+.float-nav__fab:hover{transform:scale(1.04);box-shadow:0 12px 36px rgba(13,31,60,.4)}
+.float-nav__fab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+
+.float-nav-backdrop{
+  display:none;position:fixed;inset:0;z-index:499;
+  background:rgba(13,31,60,.35);
+  backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .3s ease;pointer-events:none;
+}
+.float-nav-backdrop.visible{opacity:1;pointer-events:auto}
+
+/* Hover tooltip (global) */
+.nav-tooltip{
+  position:fixed;z-index:600;
+  max-width:280px;padding:10px 14px;
+  font-size:12px;line-height:1.45;color:#fff;
+  background:rgba(13,31,60,.94);
+  backdrop-filter:blur(8px);
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+  pointer-events:none;
+  opacity:0;transform:translate(-4px,4px) scale(.98);
+  transition:opacity .18s ease,transform .22s cubic-bezier(.34,1.2,.64,1);
+}
+.nav-tooltip.is-visible{opacity:1;transform:translate(0,0) scale(1)}
+.nav-tooltip::after{
+  content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);
+  border:6px solid transparent;border-left-color:rgba(13,31,60,.94);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .float-nav__panel,.nav-link,.float-nav__fab,.nav-tooltip{transition:none}
+  .nav-link:hover{transform:none}
 }
 
 /* ─────────────────────────────────────────────
    MAIN LAYOUT
 ───────────────────────────────────────────── */
-.main{margin-left:230px;min-height:100vh;overflow-anchor:none}
+.main{margin-left:0;min-height:100vh;overflow-anchor:none;position:relative;z-index:1}
+@media(min-width:961px){
+  .hero{padding-right:calc(64px + 300px)}
+  .section{padding-right:calc(64px + 300px)}
+  .page-footer{padding-right:calc(64px + 300px)}
+  .page-footer-credit{padding:20px calc(64px + 300px) 28px 64px}
+}
 
 /* ─────────────────────────────────────────────
    HERO
@@ -207,8 +358,8 @@ body{
    PROGRESS BAR (top of page on scroll)
 ───────────────────────────────────────────── */
 .progress-bar{
-  position:fixed;top:0;left:230px;right:0;height:2px;
-  background:linear-gradient(90deg,var(--blue-acc),#7EADEE);
+  position:fixed;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--blue-acc),#7EADEE,#5B9FE8);
   transform:scaleX(0);transform-origin:left;
   z-index:300;
   transition:transform .1s linear;
@@ -872,8 +1023,30 @@ table.type-tbl tbody tr:hover{background:rgba(45,107,228,.04)}
 .mt-sm{margin-top:16px}.mt-md{margin-top:28px}.mt-lg{margin-top:40px}
 
 @media(max-width:960px){
-  .sidebar{width:0;overflow:hidden}
-  .main{margin-left:0}
+  .main{margin-left:0;padding-right:0;padding-bottom:max(88px,env(safe-area-inset-bottom))}
+  .float-nav{
+    top:auto;bottom:20px;right:16px;left:auto;
+    transform:none;
+    flex-direction:column-reverse;
+  }
+  .float-nav__fab{display:inline-flex}
+  .float-nav__panel{
+    position:fixed;
+    right:16px;bottom:76px;
+    width:min(340px,calc(100vw - 32px));
+    max-height:min(70vh,560px);
+    transform:translateY(12px) scale(.96);
+    opacity:0;
+    pointer-events:none;
+    visibility:hidden;
+  }
+  .float-nav--open .float-nav__panel{
+    transform:translateY(0) scale(1);
+    opacity:1;
+    pointer-events:auto;
+    visibility:visible;
+  }
+  .float-nav-backdrop{display:block}
   .section{padding:40px 28px}
   .hero{padding:48px 28px}
   .swatch-grid,.chart-grid,.dos-grid,.map-spec,.mandatory-grid,.viz-grid,.grid-2,.grid-3,.font-spec-grid{grid-template-columns:1fr}
@@ -886,75 +1059,29 @@ table.type-tbl tbody tr:hover{background:rgba(45,107,228,.04)}
 
 /* ── Brand logo (external asset) ── */
 .brand-logo{display:block;height:auto;max-width:100%}
-.brand-logo--sidebar{max-height:44px;width:auto;object-fit:contain}
 .brand-logo--hero{max-height:64px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.25))}
 .brand-logo--mock{max-height:48px;width:auto;object-fit:contain}
 
-/* ── Mobile top bar + menu ── */
-.mobile-topbar{
-  display:none;position:sticky;top:0;left:0;right:0;z-index:400;
-  height:52px;padding:0 14px 0 16px;
-  background:var(--navy);border-bottom:1px solid rgba(255,255,255,.08);
-  align-items:center;justify-content:space-between;gap:12px;
-}
-.mobile-topbar-logo{max-height:32px;width:auto;object-fit:contain}
-.menu-toggle{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:44px;height:44px;border:none;border-radius:10px;
-  background:rgba(255,255,255,.1);color:#fff;cursor:pointer;
-  transition:background var(--transition);
-}
-.menu-toggle:hover{background:rgba(255,255,255,.16)}
-.menu-toggle svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
-.sidebar-backdrop{
-  display:none;position:fixed;inset:0;background:rgba(13,31,60,.45);
-  z-index:199;opacity:0;transition:opacity .25s ease;backdrop-filter:blur(2px);
-}
-.sidebar-backdrop.visible{display:block;opacity:1}
-body.nav-open{overflow:hidden}
-body.nav-open .sidebar{transform:translateX(0);width:min(300px,88vw);box-shadow:8px 0 32px rgba(0,0,0,.2)}
-body.nav-open .sidebar-backdrop{display:block;opacity:1}
-
 .back-to-top{
-  position:fixed;right:20px;bottom:24px;z-index:350;
-  width:44px;height:44px;border-radius:50%;
-  border:1px solid var(--border);background:var(--white);
+  position:fixed;left:20px;bottom:24px;z-index:350;
+  width:46px;height:46px;border-radius:50%;
+  border:1px solid var(--border);background:var(--float-glass);
+  backdrop-filter:blur(12px);
   color:var(--navy);cursor:pointer;box-shadow:var(--shadow-md);
   display:flex;align-items:center;justify-content:center;
   opacity:0;visibility:hidden;transform:translateY(8px);
   transition:opacity .25s ease,transform .25s ease,visibility .25s;
 }
+html[data-theme="dark"] .back-to-top{color:var(--text)}
 .back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
 .back-to-top:hover{background:var(--navy-soft);border-color:var(--blue-acc)}
 .back-to-top svg{width:20px;height:20px}
 
-.nav-search-wrap{padding:0 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
-.nav-search{
-  width:100%;padding:8px 10px 8px 32px;border-radius:8px;
-  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
-  color:#fff;font-size:12px;font-family:inherit;outline:none;
-  transition:border-color var(--transition),background var(--transition);
-}
-.nav-search::placeholder{color:rgba(255,255,255,.35)}
-.nav-search:focus{border-color:rgba(45,107,228,.6);background:rgba(255,255,255,.1)}
-.nav-search-icon{
-  position:absolute;left:26px;top:50%;transform:translateY(-50%);
-  width:14px;height:14px;opacity:.35;pointer-events:none;
-}
-.nav-search-wrap{position:relative}
-
 .hero-grid{grid-template-columns:auto 1fr}
 @media(max-width:960px){
-  .mobile-topbar{display:flex}
-  .sidebar{
-    transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
-    width:min(300px,88vw);box-shadow:none;
-  }
-  .sidebar:not(.mobile-hidden){}
-  .main{margin-left:0}
-  .progress-bar{left:0}
+  .back-to-top{left:16px;bottom:20px}
   .section{padding:40px 28px}
-  .hero{padding:32px 24px 40px;padding-top:20px}
+  .hero{padding:32px 24px 40px;padding-top:28px}
   .hero-grid{grid-template-columns:1fr;gap:16px}
   .hero-accent-line{display:none}
   .brand-logo--hero{max-height:52px}
@@ -968,66 +1095,74 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
 <!-- PROGRESS BAR -->
 <div class="progress-bar" id="progressBar"></div>
 
-<div class="mobile-topbar" id="mobileTopbar" aria-hidden="false">
-  <img class="mobile-topbar-logo" src="assets/unmiss-hrd-logo.png" alt="" width="160" height="44" loading="eager">
-  <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="sidebar" title="Open menu">
+<div class="float-nav-backdrop" id="floatNavBackdrop" hidden aria-hidden="true"></div>
+
+<div class="nav-tooltip" id="navTooltip" role="tooltip" hidden></div>
+
+<!-- ══════════════════════════════════════════
+     FLOATING NAV
+═══════════════════════════════════════════ -->
+<nav class="float-nav" id="floatNav" aria-label="Section navigation">
+  <div class="float-nav__panel" id="floatNavPanel">
+    <div class="float-nav__head">
+      <img src="assets/unmiss-hrd-logo.png" alt="UNMISS Human Rights Division" width="200" height="56" loading="eager">
+      <div class="float-nav__meta">UNMISS · Human Rights Division</div>
+      <div class="float-nav__title">Data Visualization &amp; Brand Identity · v2.0</div>
+      <div class="float-nav__toolbar">
+        <button type="button" class="float-nav__icon-btn" id="themeToggle" title="Toggle light / dark theme" aria-pressed="false">
+          <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <span id="themeToggleLabel">Theme</span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-search-wrap">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+      <input type="search" class="nav-search" id="navSearch" placeholder="Filter sections…" autocomplete="off" aria-label="Filter navigation">
+    </div>
+    <div class="float-nav__scroll">
+      <div class="nav-section">
+        <div class="nav-group-label">Introduction</div>
+        <a class="nav-link active" href="#overview" data-hint="Title, logo, and what this guide covers."><span class="nav-num">00</span>Overview</a>
+        <div class="nav-group-label">Brand</div>
+        <a class="nav-link" href="#brand-identity" data-hint="Institutional voice, logo use, and tone in visuals."><span class="nav-num">01</span>Brand Identity</a>
+        <div class="nav-group-label">Color System</div>
+        <a class="nav-link" href="#brand" data-hint="Navy foundation and primary UI colours — click swatches to copy hex."><span class="nav-num">02</span>Brand Colors</a>
+        <a class="nav-link" href="#violations" data-hint="Palette for violation categories (killed, injured, CRSV, etc.)."><span class="nav-num">03</span>Violation Types</a>
+        <a class="nav-link" href="#perpetrators" data-hint="Colours for actor groups — use full official labels."><span class="nav-num">04</span>Perpetrator Groups</a>
+        <a class="nav-link" href="#gender" data-hint="Men, women, boys, girls — distinct, accessible hues."><span class="nav-num">05</span>Gender Disaggregation</a>
+        <a class="nav-link" href="#states" data-hint="State / geographic choropleth and ranked bars."><span class="nav-num">06</span>Geographic / States</a>
+        <a class="nav-link" href="#sequential" data-hint="Heatmaps and single-hue ramps for intensity."><span class="nav-num">07</span>Sequential Scales</a>
+        <div class="nav-group-label">Typography</div>
+        <a class="nav-link" href="#typography" data-hint="IBM Plex Sans, Condensed, and Mono — roles and pairing."><span class="nav-num">08</span>Type System</a>
+        <a class="nav-link" href="#typescale" data-hint="Heading and body sizes for print and screen."><span class="nav-num">09</span>Type Scale</a>
+        <div class="nav-group-label">Visualization</div>
+        <a class="nav-link" href="#viztypes" data-hint="When to use bars, lines, small multiples, and more."><span class="nav-num">10</span>Chart Types</a>
+        <a class="nav-link" href="#mandatory" data-hint="Titles, sources, classification, and disclaimers."><span class="nav-num">11</span>Mandatory Elements</a>
+        <a class="nav-link" href="#samples" data-hint="Live Chart.js examples with HRD palettes."><span class="nav-num">12</span>Sample Charts</a>
+        <a class="nav-link" href="#maps" data-hint="Boundaries, bubbles, labels, and UN map rules."><span class="nav-num">13</span>Map Guidelines</a>
+        <div class="nav-group-label">Infographic</div>
+        <a class="nav-link" href="#infographic" data-hint="Grid for HRD one-pagers and dashboards."><span class="nav-num">14</span>Layout Template</a>
+        <a class="nav-link" href="#mockup" data-hint="Annotated example with KPIs and chart band."><span class="nav-num">15</span>Annotated Mockup</a>
+        <div class="nav-group-label">Standards</div>
+        <a class="nav-link" href="#dosdonts" data-hint="Quick checklist of approved vs forbidden practices."><span class="nav-num">16</span>Dos &amp; Don'ts</a>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="float-nav__fab" id="floatNavFab" aria-expanded="false" aria-controls="floatNavPanel" title="Open section menu">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Menu
   </button>
-</div>
-<div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+</nav>
+
 <button type="button" class="back-to-top" id="backToTop" title="Back to top" aria-label="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
-
 
 <!-- TOAST -->
 <div class="toast" id="toast">
   <div class="toast-icon">✓</div>
   <span id="toast-text">Hex copied!</span>
 </div>
-
-<!-- ══════════════════════════════════════════
-     SIDEBAR
-═══════════════════════════════════════════ -->
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div style="margin-bottom:12px">
-      <img class="brand-logo brand-logo--sidebar" src="assets/unmiss-hrd-logo.png" alt="UNMISS Human Rights Division" width="200" height="56" loading="eager">
-    </div>
-    <div class="sidebar-org">UNMISS · Human Rights Division</div>
-    <div class="sidebar-title">Data Visualization &amp;<br>Brand Identity · v2.0</div>
-  </div>
-  <div class="nav-search-wrap">
-    <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
-    <input type="search" class="nav-search" id="navSearch" placeholder="Filter sections…" autocomplete="off" aria-label="Filter navigation">
-  </div>
-  <div class="nav-section">
-    <div class="nav-group-label">Introduction</div>
-    <a class="nav-link active" href="#overview"><span class="nav-num">00</span>Overview</a>
-    <div class="nav-group-label">Brand</div>
-    <a class="nav-link" href="#brand-identity"><span class="nav-num">01</span>Brand Identity</a>
-    <div class="nav-group-label">Color System</div>
-    <a class="nav-link" href="#brand"><span class="nav-num">02</span>Brand Colors</a>
-    <a class="nav-link" href="#violations"><span class="nav-num">03</span>Violation Types</a>
-    <a class="nav-link" href="#perpetrators"><span class="nav-num">04</span>Perpetrator Groups</a>
-    <a class="nav-link" href="#gender"><span class="nav-num">05</span>Gender Disaggregation</a>
-    <a class="nav-link" href="#states"><span class="nav-num">06</span>Geographic / States</a>
-    <a class="nav-link" href="#sequential"><span class="nav-num">07</span>Sequential Scales</a>
-    <div class="nav-group-label">Typography</div>
-    <a class="nav-link" href="#typography"><span class="nav-num">08</span>Type System</a>
-    <a class="nav-link" href="#typescale"><span class="nav-num">09</span>Type Scale</a>
-    <div class="nav-group-label">Visualization</div>
-    <a class="nav-link" href="#viztypes"><span class="nav-num">10</span>Chart Types</a>
-    <a class="nav-link" href="#mandatory"><span class="nav-num">11</span>Mandatory Elements</a>
-    <a class="nav-link" href="#samples"><span class="nav-num">12</span>Sample Charts</a>
-    <a class="nav-link" href="#maps"><span class="nav-num">13</span>Map Guidelines</a>
-    <div class="nav-group-label">Infographic</div>
-    <a class="nav-link" href="#infographic"><span class="nav-num">14</span>Layout Template</a>
-    <a class="nav-link" href="#mockup"><span class="nav-num">15</span>Annotated Mockup</a>
-    <div class="nav-group-label">Standards</div>
-    <a class="nav-link" href="#dosdonts"><span class="nav-num">16</span>Dos &amp; Don'ts</a>
-  </div>
-</nav>
 
 <!-- ══════════════════════════════════════════
      MAIN
@@ -2419,27 +2554,110 @@ new Chart(document.getElementById('c6'), {
   }
 });
 
-/* ── Mobile nav ── */
+/* ── Theme (persisted) ── */
 (function(){
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebarBackdrop');
-  const toggle = document.getElementById('menuToggle');
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const label = document.getElementById('themeToggleLabel');
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function preferred() {
+    const s = localStorage.getItem('hrd-viz-theme');
+    if (s === 'light' || s === 'dark') return s;
+    return mq.matches ? 'dark' : 'light';
+  }
+  function apply(t) {
+    root.setAttribute('data-theme', t);
+    localStorage.setItem('hrd-viz-theme', t);
+    if (btn) {
+      btn.setAttribute('aria-pressed', t === 'dark' ? 'true' : 'false');
+      if (label) label.textContent = t === 'dark' ? 'Light mode' : 'Dark mode';
+    }
+  }
+  apply(preferred());
+  mq.addEventListener('change', function () {
+    if (!localStorage.getItem('hrd-viz-theme')) apply(mq.matches ? 'dark' : 'light');
+  });
+  btn?.addEventListener('click', function () {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    apply(next);
+  });
+})();
+
+/* ── Floating nav: mobile sheet + backdrop ── */
+(function(){
+  const shell = document.getElementById('floatNav');
+  const backdrop = document.getElementById('floatNavBackdrop');
+  const fab = document.getElementById('floatNavFab');
   const mq = window.matchMedia('(max-width:960px)');
 
   function setOpen(open) {
-    document.body.classList.toggle('nav-open', open);
-    if (backdrop) { backdrop.hidden = !open; backdrop.classList.toggle('visible', open); }
-    if (toggle) { toggle.setAttribute('aria-expanded', open); }
+    if (!shell) return;
+    shell.classList.toggle('float-nav--open', open);
+    if (fab) fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (!mq.matches) {
+      if (backdrop) {
+        backdrop.hidden = true;
+        backdrop.classList.remove('visible');
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+      document.body.style.overflow = '';
+      return;
+    }
+    if (backdrop) {
+      backdrop.hidden = !open;
+      backdrop.classList.toggle('visible', open);
+      backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+    document.body.style.overflow = open ? 'hidden' : '';
   }
   function closeNav(){ setOpen(false); }
-  toggle?.addEventListener('click', () => setOpen(!document.body.classList.contains('nav-open')));
-  backdrop?.addEventListener('click', closeNav);
-  document.querySelectorAll('.sidebar .nav-link').forEach(a => {
-    a.addEventListener('click', () => { if (mq.matches) closeNav(); });
+  fab?.addEventListener('click', function () {
+    setOpen(!shell?.classList.contains('float-nav--open'));
   });
-  window.addEventListener('resize', () => { if (!mq.matches) closeNav(); });
-  document.addEventListener('keydown', (e) => {
+  backdrop?.addEventListener('click', closeNav);
+  document.querySelectorAll('.float-nav .nav-link').forEach(function (a) {
+    a.addEventListener('click', function () { if (mq.matches) closeNav(); });
+  });
+  window.addEventListener('resize', function () {
+    if (!mq.matches) closeNav();
+  });
+  document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeNav();
+  });
+})();
+
+/* ── Nav link hover hints (pointer devices) ── */
+(function(){
+  const tip = document.getElementById('navTooltip');
+  if (!tip || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const links = document.querySelectorAll('.float-nav .nav-link[data-hint]');
+  let hideTimer;
+  function show(e) {
+    const text = e.currentTarget.getAttribute('data-hint');
+    if (!text) return;
+    clearTimeout(hideTimer);
+    tip.textContent = text;
+    tip.hidden = false;
+    requestAnimationFrame(function () {
+      tip.classList.add('is-visible');
+      const tr = tip.getBoundingClientRect();
+      const lr = e.currentTarget.getBoundingClientRect();
+      let left = lr.left - tr.width - 12;
+      let top = lr.top + lr.height / 2 - tr.height / 2;
+      if (left < 12) left = lr.right + 12;
+      tip.style.left = Math.min(left, window.innerWidth - tr.width - 12) + 'px';
+      tip.style.top = Math.max(8, Math.min(top, window.innerHeight - tr.height - 8)) + 'px';
+    });
+  }
+  function hide() {
+    tip.classList.remove('is-visible');
+    hideTimer = setTimeout(function () { tip.hidden = true; }, 180);
+  }
+  links.forEach(function (a) {
+    a.addEventListener('mouseenter', show);
+    a.addEventListener('mouseleave', hide);
+    a.addEventListener('focus', show);
+    a.addEventListener('blur', hide);
   });
 })();
 
@@ -2447,8 +2665,8 @@ new Chart(document.getElementById('c6'), {
 (function(){
   const input = document.getElementById('navSearch');
   if (!input) return;
-  const links = Array.from(document.querySelectorAll('.sidebar .nav-link'));
-  const labels = document.querySelectorAll('.sidebar .nav-group-label');
+  const links = Array.from(document.querySelectorAll('.float-nav .nav-link'));
+  const labels = document.querySelectorAll('.float-nav .nav-group-label');
   input.addEventListener('input', () => {
     const q = input.value.trim().toLowerCase();
     links.forEach(a => {
