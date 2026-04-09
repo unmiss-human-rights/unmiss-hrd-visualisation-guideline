@@ -1,6 +1,6 @@
-# UNMISS HRD — Data Visualization Guidelines
+# UNMISS Human Rights Division — Data Visualization and Brand Identity Guidelines
 
-Official web reference for **UNMISS Human Rights Division** data visualization standards: color palettes, typography (IBM Plex), chart and map rules, infographic layout, and annotated examples with live Chart.js demos.
+Official web reference for **UNMISS HRD** data visualization and brand identity standards: institutional alignment, color palettes, typography (IBM Plex), chart and map rules, infographic layout, and annotated examples with live Chart.js demos.
 
 - **Live site (GitHub Pages):** https://mafiatun.github.io/unmiss-hrd-visualisation-guideline/
 - **Version:** 2.0 (April 2026)
