@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNMISS HRD — Data Visualization Guidelines v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ─────────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────────── */
+:root {
+  --navy:       #0D1F3C;
+  --navy-mid:   #1A3260;
+  --navy-soft:  #E8EDF7;
+  --blue-acc:   #2D6BE4;
+  --text:       #0D1F3C;
+  --text-2:     #4A5568;
+  --text-3:     #8898A8;
+  --border:     #DDE3EE;
+  --border-2:   #C8D0E0;
+  --bg:         #F4F6FA;
+  --white:      #FFFFFF;
+  --radius:     10px;
+  --radius-lg:  16px;
+  --shadow-sm:  0 1px 4px rgba(13,31,60,.06), 0 0 0 1px rgba(13,31,60,.05);
+  --shadow-md:  0 4px 16px rgba(13,31,60,.10), 0 0 0 1px rgba(13,31,60,.06);
+  --shadow-lg:  0 12px 40px rgba(13,31,60,.14), 0 0 0 1px rgba(13,31,60,.07);
+  --transition: 0.22s cubic-bezier(.4,0,.2,1);
+
+  /* ── VIOLATION PALETTE (cool blues/purples/greens) */
+  --vk: #0D1F3C;   /* Killed    – midnight navy    */
+  --vi: #1565C0;   /* Injured   – cobalt blue      */
+  --va: #00695C;   /* Abducted  – dark emerald     */
+  --vc: #4527A0;   /* CRSV      – deep indigo      */
+  --vs: #6A1B4D;   /* SGBV      – deep wine        */
+  --vd: #2E7D32;   /* Arbitrary – forest green     */
+
+  /* ── PERPETRATOR PALETTE (warm/neutral — fully distinct) */
+  --pa: #B45309;   /* CBM/CDGs   – dark amber      */
+  --pb: #374151;   /* Conventional – slate         */
+  --pc: #78909C;   /* Unidentified – steel grey    */
+
+  /* ── GENDER PALETTE (vivid, distinct from both above) */
+  --gm: #0277BD;   /* Men   – ocean blue           */
+  --gw: #C2185B;   /* Women – deep raspberry       */
+  --gb: #4FC3F7;   /* Boys  – sky blue             */
+  --gg: #F48FB1;   /* Girls – blush pink           */
+}
+
+/* ─────────────────────────────────────────────
+   RESET + BASE
+───────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:0}
+body{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:15px;line-height:1.65;
+  color:var(--text);
+  background:var(--bg);
+  overflow-x:hidden;
+}
+
+/* ─────────────────────────────────────────────
+   SIDEBAR
+───────────────────────────────────────────── */
+.sidebar{
+  position:fixed;top:0;left:0;
+  width:230px;height:100vh;
+  background:var(--navy);
+  overflow-y:auto;overflow-x:hidden;
+  z-index:200;
+  display:flex;flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+
+.sidebar-header{
+  padding:28px 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
+}
+.sidebar-un{
+  width:28px;height:28px;
+  background:rgba(255,255,255,.12);
+  border-radius:50%;
+  margin-bottom:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.sidebar-un svg{width:16px;height:16px;fill:rgba(255,255,255,.7)}
+.sidebar-org{
+  font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.38);
+  line-height:1.4;margin-bottom:4px;
+}
+.sidebar-title{
+  font-size:12.5px;font-weight:600;
+  color:rgba(255,255,255,.85);line-height:1.4;
+}
+
+.nav-section{padding:16px 0 0}
+.nav-group-label{
+  font-size:8.5px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.28);
+  padding:0 20px 6px;
+  margin-top:8px;
+}
+.nav-link{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 20px;
+  font-size:12px;font-weight:400;
+  color:rgba(255,255,255,.55);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:all var(--transition);
+  cursor:pointer;position:relative;
+}
+.nav-link::after{
+  content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  width:4px;height:4px;border-radius:50%;
+  background:var(--blue-acc);opacity:0;
+  transition:opacity var(--transition);
+}
+.nav-link:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.06);border-left-color:rgba(255,255,255,.2)}
+.nav-link.active{color:#fff;background:rgba(45,107,228,.18);border-left-color:var(--blue-acc);font-weight:500}
+.nav-link.active::after{opacity:1}
+.nav-num{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;color:rgba(255,255,255,.25);
+  width:18px;flex-shrink:0;
+}
+
+/* ─────────────────────────────────────────────
+   MAIN LAYOUT
+───────────────────────────────────────────── */
+.main{margin-left:230px;min-height:100vh}
+
+/* ─────────────────────────────────────────────
+   HERO
+───────────────────────────────────────────── */
+.hero{
+  background:var(--navy);
+  padding:72px 64px 60px;
+  position:relative;overflow:hidden;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:60px 1fr;
+  gap:0 24px;
+  align-items:start;
+  max-width:900px;
+}
+.hero-accent-line{
+  width:2px;background:var(--blue-acc);
+  height:0;border-radius:2px;
+  transition:height 1.2s cubic-bezier(.4,0,.2,1);
+  margin-top:6px;
+}
+.hero-content{}
+.hero-kicker{
+  font-size:9.5px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.35);
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:38px;font-weight:700;
+  color:#fff;line-height:1.12;
+  margin-bottom:20px;
+}
+.hero h1 em{font-style:normal;color:#7EADEE}
+.hero-desc{
+  font-size:14px;color:rgba(255,255,255,.55);
+  max-width:580px;line-height:1.7;
+  margin-bottom:32px;
+}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px}
+.hero-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:500;
+  color:rgba(255,255,255,.6);
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:5px 12px;
+  transition:all var(--transition);
+}
+.hero-chip:hover{background:rgba(255,255,255,.13);color:rgba(255,255,255,.9)}
+.hero-chip-dot{width:6px;height:6px;border-radius:50%;background:var(--blue-acc)}
+
+/* ─────────────────────────────────────────────
+   PROGRESS BAR (top of page on scroll)
+───────────────────────────────────────────── */
+.progress-bar{
+  position:fixed;top:0;left:230px;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue-acc),#7EADEE);
+  transform:scaleX(0);transform-origin:left;
+  z-index:300;
+  transition:transform .1s linear;
+}
+
+/* ─────────────────────────────────────────────
+   SECTION
+───────────────────────────────────────────── */
+.section{
+  padding:64px;
+  border-bottom:1px solid var(--border);
+  background:var(--white);
+  opacity:0;transform:translateY(20px);
+  transition:opacity .6s ease,transform .6s ease;
+}
+.section.visible{opacity:1;transform:translateY(0)}
+.section:nth-child(even){background:var(--bg)}
+
+.section-inner{max-width:960px}
+
+.section-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;font-weight:500;
+  color:var(--blue-acc);
+  background:rgba(45,107,228,.08);
+  border:1px solid rgba(45,107,228,.18);
+  border-radius:4px;padding:3px 9px;
+  margin-bottom:14px;
+}
+.section h2{
+  font-size:26px;font-weight:700;
+  color:var(--navy);line-height:1.2;
+  margin-bottom:10px;
+}
+.section-lead{
+  font-size:14px;color:var(--text-2);
+  max-width:680px;line-height:1.75;
+  margin-bottom:40px;
+}
+
+/* ─────────────────────────────────────────────
+   SUBSECTION
+───────────────────────────────────────────── */
+.sub{margin-bottom:40px}
+.sub-title{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:6px;
+}
+.sub-title h3{
+  font-size:13px;font-weight:600;
+  color:var(--navy-mid);
+  text-transform:uppercase;letter-spacing:.08em;
+}
+.sub-title-line{flex:1;height:1px;background:var(--border)}
+.sub-desc{font-size:13px;color:var(--text-3);margin-bottom:16px;line-height:1.65}
+
+/* ─────────────────────────────────────────────
+   BRAND SWATCH STRIP
+───────────────────────────────────────────── */
+.brand-strip{
+  display:flex;gap:0;border-radius:var(--radius);
+  overflow:hidden;border:1px solid var(--border);
+}
+.brand-strip-item{
+  flex:1;height:52px;
+  display:flex;align-items:flex-end;padding-bottom:6px;justify-content:center;
+}
+.brand-strip-item span{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;font-weight:500;
+}
+
+/* ─────────────────────────────────────────────
+   PALETTE SWATCH CARDS
+───────────────────────────────────────────── */
+.swatch-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.swatch-grid-2{grid-template-columns:repeat(2,1fr)}
+.swatch-grid-4{grid-template-columns:repeat(4,1fr)}
+
+.swatch-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform var(--transition),box-shadow var(--transition),border-color var(--transition);
+  position:relative;
+}
+.swatch-card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-md);
+  border-color:var(--border-2);
+}
+.swatch-card:active{transform:translateY(-1px)}
+
+.swatch-color{
+  height:72px;
+  position:relative;
+  transition:height var(--transition);
+}
+.swatch-card:hover .swatch-color{height:84px}
+
+.copy-indicator{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity var(--transition);
+  font-size:11px;font-weight:600;color:#fff;
+  letter-spacing:.06em;
+}
+.swatch-card:hover .copy-indicator{opacity:1}
+
+.swatch-meta{padding:12px 14px 14px}
+.swatch-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.swatch-hex{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--text-3);
+  margin-bottom:4px;
+}
+.swatch-use{font-size:11px;color:var(--text-2);line-height:1.5}
+
+/* Category label above swatch group */
+.palette-group-label{
+  font-size:9.5px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:12px;margin-top:32px;
+  display:flex;align-items:center;gap:10px;
+}
+.palette-group-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ─────────────────────────────────────────────
+   PALETTE SHOWCASE (big colored bars)
+───────────────────────────────────────────── */
+.palette-showcase{
+  border-radius:var(--radius);
+  overflow:hidden;
+  border:1px solid var(--border);
+  display:flex;
+  height:64px;
+}
+.ps-item{
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  padding-bottom:7px;gap:2px;
+  transition:flex var(--transition);
+  cursor:pointer;position:relative;
+  overflow:hidden;
+}
+.ps-item:hover{flex:1.8}
+.ps-item-label{
+  font-size:8px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.85);
+}
+.ps-item-hex{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:7.5px;color:rgba(255,255,255,.55);
+}
+.ps-item-tooltip{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--navy);color:#fff;
+  font-size:11px;font-weight:500;
+  padding:6px 10px;border-radius:6px;
+  white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity var(--transition);
+  z-index:10;
+}
+.ps-item-tooltip::after{
+  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:4px solid transparent;border-top-color:var(--navy);
+}
+.ps-item:hover .ps-item-tooltip{opacity:1}
+
+/* ─────────────────────────────────────────────
+   SEQUENTIAL SCALE
+───────────────────────────────────────────── */
+.seq-wrap{margin-top:12px}
+.seq-bar{
+  display:flex;height:48px;border-radius:8px;
+  overflow:hidden;border:1px solid var(--border);
+}
+.seq-step{
+  flex:1;display:flex;align-items:flex-end;
+  justify-content:center;padding-bottom:5px;
+  transition:flex var(--transition);cursor:pointer;
+}
+.seq-step:hover{flex:2}
+.seq-step span{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;font-weight:500;
+  color:rgba(255,255,255,.7);
+}
+.seq-ends{
+  display:flex;justify-content:space-between;
+  font-size:10.5px;color:var(--text-3);margin-top:6px;
+}
+
+/* ─────────────────────────────────────────────
+   TYPOGRAPHY TABLE
+───────────────────────────────────────────── */
+.type-table-wrap{
+  border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+table.type-tbl{width:100%;border-collapse:collapse}
+table.type-tbl thead tr{background:var(--navy)}
+table.type-tbl th{
+  padding:10px 14px;
+  font-size:9.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.6);text-align:left;
+}
+table.type-tbl td{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  font-size:13px;color:var(--text);
+  vertical-align:middle;
+}
+table.type-tbl tr:last-child td{border-bottom:none}
+table.type-tbl tbody tr{
+  transition:background var(--transition);cursor:default;
+}
+table.type-tbl tbody tr:hover{background:rgba(45,107,228,.04)}
+
+.type-preview-cell{font-family:'IBM Plex Sans',sans-serif}
+.mono-pill{
+  font-family:'IBM Plex Mono',monospace;
+  background:var(--navy-soft);color:var(--navy-mid);
+  font-size:10px;padding:2px 7px;border-radius:4px;
+  white-space:nowrap;
+}
+.w-pill{
+  display:inline-block;font-size:9.5px;font-weight:700;
+  padding:2px 8px;border-radius:4px;
+}
+
+/* ─────────────────────────────────────────────
+   VIZ TYPE CARDS
+───────────────────────────────────────────── */
+.viz-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.viz-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:transform var(--transition),box-shadow var(--transition),border-color var(--transition);
+  cursor:default;
+}
+.viz-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-md);
+  border-color:var(--border-2);
+}
+.viz-thumb{
+  height:120px;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--transition);
+  border-bottom:1px solid var(--border);
+}
+.viz-card:hover .viz-thumb{background:var(--navy-soft)}
+.viz-meta{padding:14px}
+.viz-badge{
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  display:inline-block;padding:2px 8px;border-radius:4px;
+  margin-bottom:6px;
+}
+.viz-meta h5{font-size:13.5px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.viz-meta p{font-size:11.5px;color:var(--text-2);line-height:1.5}
+.viz-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.viz-tag{
+  font-size:9.5px;font-weight:600;
+  padding:2px 8px;border-radius:4px;
+}
+
+/* ─────────────────────────────────────────────
+   MANDATORY ELEMENTS GRID
+───────────────────────────────────────────── */
+.mandatory-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.mand-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 18px;
+  border-top:3px solid transparent;
+  transition:transform var(--transition),box-shadow var(--transition);
+}
+.mand-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.mand-card.req{border-top-color:var(--navy)}
+.mand-card.rec{border-top-color:#0D7A68}
+.mand-card.ctx{border-top-color:#B45309}
+.mand-type{
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:4px;
+}
+.mand-type.req{color:var(--navy)}
+.mand-type.rec{color:#0D7A68}
+.mand-type.ctx{color:#B45309}
+.mand-card h5{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.mand-card p{font-size:12px;color:var(--text-2);line-height:1.55}
+
+/* ─────────────────────────────────────────────
+   CHART CARDS
+───────────────────────────────────────────── */
+.chart-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+.chart-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  transition:box-shadow var(--transition);
+}
+.chart-card:hover{box-shadow:var(--shadow-md)}
+.chart-card.span-2{grid-column:1/-1}
+.chart-hd{
+  padding:16px 20px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+}
+.chart-hd-left{}
+.chart-hd-badge{
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--blue-acc);background:rgba(45,107,228,.08);
+  border:1px solid rgba(45,107,228,.15);
+  padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:5px;
+}
+.chart-hd h4{font-size:14px;font-weight:600;color:var(--navy);line-height:1.3}
+.chart-hd p{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.chart-bd{padding:18px 20px}
+.chart-legend{
+  display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:12px;
+}
+.lg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-2)}
+.lg-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.chart-ft{
+  padding:8px 20px 12px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;color:var(--text-3);
+  border-top:1px solid var(--border);
+}
+
+/* ─────────────────────────────────────────────
+   INFOGRAPHIC MOCKUP
+───────────────────────────────────────────── */
+.mock-wrap{
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:var(--shadow-lg);
+  max-width:900px;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+.mock-hd{
+  background:var(--navy);
+  padding:24px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mock-hd-kicker{
+  font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(255,255,255,.35);margin-bottom:5px;
+}
+.mock-hd h2{font-size:24px;font-weight:700;color:#fff;line-height:1.15}
+.mock-hd p{font-size:12px;color:rgba(255,255,255,.5);margin-top:5px}
+.mock-period-badge{
+  display:inline-block;margin-top:8px;
+  background:var(--blue-acc);color:#fff;
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 12px;border-radius:4px;
+}
+.mock-logo-box{
+  width:72px;height:56px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:8.5px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.06em;
+  line-height:1.5;
+}
+.mock-hl{
+  background:#162447;
+  padding:12px 32px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.mock-hl-label{
+  font-size:7.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);margin-bottom:5px;
+}
+.mock-hl p{font-size:11px;color:rgba(255,255,255,.65);line-height:1.6}
+.mock-hl strong{color:#7EADEE}
+.mock-body{display:grid;grid-template-columns:210px 1fr}
+.mock-kf{background:#1A3260;padding:20px}
+.mock-kf-label{
+  font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.kf-row{
+  margin-bottom:14px;padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.kf-row:last-child{border-bottom:none;margin-bottom:0}
+.kf-num{font-size:28px;font-weight:700;line-height:1;margin-bottom:1px}
+.kf-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.mock-charts-area{padding:20px;background:var(--bg)}
+.mc-label{
+  font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:10px;
+}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-name{font-size:10px;color:var(--text-2);width:90px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:13px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.bar-val{font-size:10px;font-weight:600;color:var(--text);width:32px}
+.mock-gender{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.mg-box{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px;text-align:center;
+  transition:transform var(--transition),box-shadow var(--transition);
+}
+.mg-box:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.mg-n{font-size:17px;font-weight:700;line-height:1.1}
+.mg-l{font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-top:2px}
+.mock-ft{
+  background:var(--navy);
+  padding:8px 32px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.mock-ft span{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;color:rgba(255,255,255,.28);
+}
+
+/* FONT SPEC BOXES */
+.font-spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.font-spec-box{
+  background:var(--navy);
+  border-radius:var(--radius);padding:18px;
+  transition:transform var(--transition);
+}
+.font-spec-box:hover{transform:translateY(-3px)}
+.fs-tag{
+  font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);margin-bottom:10px;
+}
+.fs-name{
+  font-size:20px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:8px;
+}
+.fs-desc{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6}
+.fs-use{
+  margin-top:10px;font-size:10px;
+  color:var(--blue-acc);font-weight:500;
+  background:rgba(45,107,228,.15);
+  border-radius:4px;padding:4px 8px;
+}
+
+/* Annotation box for mockup */
+.annotated-section{margin-top:32px}
+.annotation-row{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+  transition:background var(--transition);border-radius:4px;
+}
+.annotation-row:hover{background:rgba(45,107,228,.04);padding-left:8px;padding-right:8px}
+.annotation-row:last-child{border-bottom:none}
+.ann-marker{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;font-weight:700;
+  color:var(--blue-acc);background:rgba(45,107,228,.1);
+  border:1px solid rgba(45,107,228,.2);
+  border-radius:4px;padding:2px 7px;
+  white-space:nowrap;flex-shrink:0;margin-top:1px;
+}
+.ann-content h5{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.ann-content p{font-size:12px;color:var(--text-2);line-height:1.55}
+
+/* ─────────────────────────────────────────────
+   DOS AND DON'TS
+───────────────────────────────────────────── */
+.dos-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.do-box{
+  background:var(--white);
+  border:1px solid var(--border);border-radius:var(--radius);padding:20px;
+  border-top:3px solid #0D7A68;
+}
+.dont-box{
+  background:var(--white);
+  border:1px solid var(--border);border-radius:var(--radius);padding:20px;
+  border-top:3px solid #B45309;
+}
+.dod-title{
+  font-size:12px;font-weight:700;margin-bottom:14px;
+  display:flex;align-items:center;gap:7px;
+}
+.do-box .dod-title{color:#0D7A68}
+.dont-box .dod-title{color:#B45309}
+.dod-icon{
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;flex-shrink:0;
+}
+.do-box .dod-icon{background:rgba(13,122,104,.12);color:#0D7A68}
+.dont-box .dod-icon{background:rgba(180,83,9,.12);color:#B45309}
+
+.dod-item{
+  display:flex;gap:8px;align-items:flex-start;
+  font-size:12.5px;color:var(--text-2);
+  padding:6px 0;line-height:1.55;
+  border-bottom:1px solid var(--bg);
+  transition:padding-left var(--transition),color var(--transition);
+}
+.dod-item:last-child{border-bottom:none}
+.dod-item:hover{padding-left:6px;color:var(--text)}
+.dod-bullet{
+  width:5px;height:5px;border-radius:50%;
+  flex-shrink:0;margin-top:6px;
+}
+.do-box .dod-bullet{background:#0D7A68}
+.dont-box .dod-bullet{background:#B45309}
+
+/* ─────────────────────────────────────────────
+   CALLOUT BLOCK
+───────────────────────────────────────────── */
+.callout{
+  background:rgba(45,107,228,.05);
+  border:1px solid rgba(45,107,228,.15);
+  border-left:3px solid var(--blue-acc);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  font-size:13px;color:var(--text);
+  line-height:1.65;margin:20px 0;
+}
+.callout strong{color:var(--navy);font-weight:600}
+
+/* ─────────────────────────────────────────────
+   TOAST NOTIFICATION
+───────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--navy);color:#fff;
+  font-size:12px;font-weight:500;
+  padding:10px 18px;border-radius:8px;
+  box-shadow:var(--shadow-lg);
+  opacity:0;transform:translateY(8px);
+  transition:opacity .25s,transform .25s;
+  z-index:9999;pointer-events:none;
+  display:flex;align-items:center;gap:8px;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-icon{
+  width:16px;height:16px;border-radius:50%;
+  background:rgba(45,107,228,.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;
+}
+
+/* ─────────────────────────────────────────────
+   MAP SPEC GRID
+───────────────────────────────────────────── */
+.map-spec{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.map-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;
+  transition:transform var(--transition),box-shadow var(--transition);
+}
+.map-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.map-card h5{font-size:13.5px;font-weight:600;color:var(--navy);margin-bottom:10px}
+.map-card li{
+  font-size:12.5px;color:var(--text-2);
+  line-height:1.8;margin-left:1.2em;
+}
+
+/* ─────────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────────── */
+.page-footer{
+  background:var(--navy);
+  padding:32px 64px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.pf-left{
+  font-size:12px;color:rgba(255,255,255,.4);
+  line-height:1.8;
+}
+.pf-left strong{color:rgba(255,255,255,.65);font-weight:600}
+.pf-right{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;color:rgba(255,255,255,.25);
+  text-align:right;line-height:1.8;
+}
+
+/* ─────────────────────────────────────────────
+   MISC UTILITY
+───────────────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:32px 0}
+.inline-code{
+  font-family:'IBM Plex Mono',monospace;
+  background:var(--navy-soft);color:var(--navy-mid);
+  font-size:11.5px;padding:1px 6px;border-radius:4px;
+}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.mt-sm{margin-top:16px}.mt-md{margin-top:28px}.mt-lg{margin-top:40px}
+
+@media(max-width:960px){
+  .sidebar{width:0;overflow:hidden}
+  .main{margin-left:0}
+  .section{padding:40px 28px}
+  .hero{padding:48px 28px}
+  .swatch-grid,.chart-grid,.dos-grid,.map-spec,.mandatory-grid,.viz-grid,.grid-2,.grid-3,.font-spec-grid{grid-template-columns:1fr}
+  .chart-card.span-2{grid-column:auto}
+  .mock-body{grid-template-columns:1fr}
+  .page-footer{flex-direction:column;gap:16px;text-align:center}
+}
+
+/* ── Brand logo (external asset) ── */
+.brand-logo{display:block;height:auto;max-width:100%}
+.brand-logo--sidebar{max-height:44px;width:auto;object-fit:contain}
+.brand-logo--hero{max-height:64px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.25))}
+.brand-logo--mock{max-height:48px;width:auto;object-fit:contain}
+
+/* ── Mobile top bar + menu ── */
+.mobile-topbar{
+  display:none;position:sticky;top:0;left:0;right:0;z-index:400;
+  height:52px;padding:0 14px 0 16px;
+  background:var(--navy);border-bottom:1px solid rgba(255,255,255,.08);
+  align-items:center;justify-content:space-between;gap:12px;
+}
+.mobile-topbar-logo{max-height:32px;width:auto;object-fit:contain}
+.menu-toggle{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border:none;border-radius:10px;
+  background:rgba(255,255,255,.1);color:#fff;cursor:pointer;
+  transition:background var(--transition);
+}
+.menu-toggle:hover{background:rgba(255,255,255,.16)}
+.menu-toggle svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
+.sidebar-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(13,31,60,.45);
+  z-index:199;opacity:0;transition:opacity .25s ease;backdrop-filter:blur(2px);
+}
+.sidebar-backdrop.visible{display:block;opacity:1}
+body.nav-open{overflow:hidden}
+body.nav-open .sidebar{transform:translateX(0);width:min(300px,88vw);box-shadow:8px 0 32px rgba(0,0,0,.2)}
+body.nav-open .sidebar-backdrop{display:block;opacity:1}
+
+.back-to-top{
+  position:fixed;right:20px;bottom:24px;z-index:350;
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--border);background:var(--white);
+  color:var(--navy);cursor:pointer;box-shadow:var(--shadow-md);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .25s ease,transform .25s ease,visibility .25s;
+}
+.back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
+.back-to-top:hover{background:var(--navy-soft);border-color:var(--blue-acc)}
+.back-to-top svg{width:20px;height:20px}
+
+.nav-search-wrap{padding:0 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-search{
+  width:100%;padding:8px 10px 8px 32px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
+  color:#fff;font-size:12px;font-family:inherit;outline:none;
+  transition:border-color var(--transition),background var(--transition);
+}
+.nav-search::placeholder{color:rgba(255,255,255,.35)}
+.nav-search:focus{border-color:rgba(45,107,228,.6);background:rgba(255,255,255,.1)}
+.nav-search-icon{
+  position:absolute;left:26px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;opacity:.35;pointer-events:none;
+}
+.nav-search-wrap{position:relative}
+
+.hero-grid{grid-template-columns:auto 1fr}
+@media(max-width:960px){
+  .mobile-topbar{display:flex}
+  .sidebar{
+    transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+    width:min(300px,88vw);box-shadow:none;
+  }
+  .sidebar:not(.mobile-hidden){}
+  .main{margin-left:0}
+  .progress-bar{left:0}
+  .section{padding:40px 28px}
+  .hero{padding:32px 24px 40px;padding-top:20px}
+  .hero-grid{grid-template-columns:1fr;gap:16px}
+  .hero-accent-line{display:none}
+  .brand-logo--hero{max-height:52px}
+}
+
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="mobile-topbar" id="mobileTopbar" aria-hidden="false">
+  <img class="mobile-topbar-logo" src="assets/unmiss-hrd-logo.png" alt="" width="160" height="44" loading="eager">
+  <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="sidebar" title="Open menu">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+<button type="button" class="back-to-top" id="backToTop" title="Back to top" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon">✓</div>
+  <span id="toast-text">Hex copied!</span>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div style="margin-bottom:12px">
+      <img class="brand-logo brand-logo--sidebar" src="assets/unmiss-hrd-logo.png" alt="UNMISS Human Rights Division" width="200" height="56" loading="eager">
+    </div>
+    <div class="sidebar-org">UNMISS · Human Rights Division</div>
+    <div class="sidebar-title">Data Visualization<br>Guidelines v2.0</div>
+  </div>
+  <div class="nav-search-wrap">
+    <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+    <input type="search" class="nav-search" id="navSearch" placeholder="Filter sections…" autocomplete="off" aria-label="Filter navigation">
+  </div>
+  <div class="nav-section">
+    <div class="nav-group-label">Color System</div>
+    <a class="nav-link" href="#brand"><span class="nav-num">01</span>Brand Colors</a>
+    <a class="nav-link" href="#violations"><span class="nav-num">02</span>Violation Types</a>
+    <a class="nav-link" href="#perpetrators"><span class="nav-num">03</span>Perpetrator Groups</a>
+    <a class="nav-link" href="#gender"><span class="nav-num">04</span>Gender Disaggregation</a>
+    <a class="nav-link" href="#states"><span class="nav-num">05</span>Geographic / States</a>
+    <a class="nav-link" href="#sequential"><span class="nav-num">06</span>Sequential Scales</a>
+    <div class="nav-group-label">Typography</div>
+    <a class="nav-link" href="#typography"><span class="nav-num">07</span>Type System</a>
+    <a class="nav-link" href="#typescale"><span class="nav-num">08</span>Type Scale</a>
+    <div class="nav-group-label">Visualization</div>
+    <a class="nav-link" href="#viztypes"><span class="nav-num">09</span>Chart Types</a>
+    <a class="nav-link" href="#mandatory"><span class="nav-num">10</span>Mandatory Elements</a>
+    <a class="nav-link" href="#samples"><span class="nav-num">11</span>Sample Charts</a>
+    <a class="nav-link" href="#maps"><span class="nav-num">12</span>Map Guidelines</a>
+    <div class="nav-group-label">Infographic</div>
+    <a class="nav-link" href="#infographic"><span class="nav-num">13</span>Layout Template</a>
+    <a class="nav-link" href="#mockup"><span class="nav-num">14</span>Annotated Mockup</a>
+    <div class="nav-group-label">Standards</div>
+    <a class="nav-link" href="#dosdonts"><span class="nav-num">15</span>Dos &amp; Don'ts</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════ -->
+<main class="main">
+
+<!-- ── HERO ── -->
+<div class="hero" id="top">
+  <div class="hero-grid">
+    <div class="hero-accent-line" id="heroLine"></div>
+    <div class="hero-content">
+      <div style="margin-bottom:20px">
+        <img class="brand-logo brand-logo--hero" src="assets/unmiss-hrd-logo.png" alt="UNMISS Human Rights Division" width="240" height="64" loading="eager">
+      </div>
+      <div class="hero-kicker">Official Design Reference · April 2026 · Version 2.0</div>
+      <h1>UNMISS <em>Human Rights Division</em><br>Data Visualization<br>Guidelines</h1>
+      <p class="hero-desc">A comprehensive specification for all data products produced by or on behalf of UNMISS HRD — covering color systems, typography, chart standards, infographic templates, and cartographic rules. Binding for all staff and external designers.</p>
+      <div class="hero-chips">
+        <div class="hero-chip"><div class="hero-chip-dot"></div>IBM Plex Sans</div>
+        <div class="hero-chip"><div class="hero-chip-dot"></div>15 Sections</div>
+        <div class="hero-chip"><div class="hero-chip-dot"></div>6 Color Palettes</div>
+        <div class="hero-chip"><div class="hero-chip-dot"></div>Live Q1 2026 Data</div>
+        <div class="hero-chip"><div class="hero-chip-dot"></div>Hover to Copy Hex</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════  01 BRAND COLORS -->
+<section class="section" id="brand">
+<div class="section-inner">
+  <div class="section-tag">01 · Brand Colors</div>
+  <h2>Brand Color Foundation</h2>
+  <p class="section-lead">The UNMISS HRD color system is anchored in deep institutional navy — derived directly from the HRD logo. All six data palettes extend from this root without overlap. Click any swatch to copy its hex code.</p>
+
+  <div class="sub">
+    <div class="sub-title"><h3>Primary Palette</h3><div class="sub-title-line"></div></div>
+    <div class="swatch-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="swatch-card" onclick="copyHex('#0D1F3C','Navy Dark')">
+        <div class="swatch-color" style="background:#0D1F3C"><div class="copy-indicator">Copy #0D1F3C</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Navy Dark</div><div class="swatch-hex">#0D1F3C</div><div class="swatch-use">Hero · Header panels · Footer backgrounds</div></div>
+      </div>
+      <div class="swatch-card" onclick="copyHex('#1A3260','Navy Mid')">
+        <div class="swatch-color" style="background:#1A3260"><div class="copy-indicator">Copy #1A3260</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Navy Mid</div><div class="swatch-hex">#1A3260</div><div class="swatch-use">Key figure panels · Section headings</div></div>
+      </div>
+      <div class="swatch-card" onclick="copyHex('#2D6BE4','Blue Accent')">
+        <div class="swatch-color" style="background:#2D6BE4"><div class="copy-indicator">Copy #2D6BE4</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Blue Accent</div><div class="swatch-hex">#2D6BE4</div><div class="swatch-use">Active states · Links · Highlight elements</div></div>
+      </div>
+      <div class="swatch-card" onclick="copyHex('#E8EDF7','Navy Soft')">
+        <div class="swatch-color" style="background:#E8EDF7;border-bottom:1px solid #DDE3EE"><div class="copy-indicator" style="color:#0D1F3C">Copy #E8EDF7</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Navy Soft</div><div class="swatch-hex">#E8EDF7</div><div class="swatch-use">Table alternates · Chips · Code backgrounds</div></div>
+      </div>
+    </div>
+    <div class="swatch-grid mt-sm" style="grid-template-columns:repeat(3,1fr)">
+      <div class="swatch-card" onclick="copyHex('#0D1F3C','Text Dark')">
+        <div class="swatch-color" style="background:#0D1F3C;height:48px"><div class="copy-indicator">Copy</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Text Dark</div><div class="swatch-hex">#0D1F3C</div><div class="swatch-use">Primary body text · Chart value labels</div></div>
+      </div>
+      <div class="swatch-card" onclick="copyHex('#4A5568','Text Mid')">
+        <div class="swatch-color" style="background:#4A5568;height:48px"><div class="copy-indicator">Copy</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Text Mid</div><div class="swatch-hex">#4A5568</div><div class="swatch-use">Section descriptions · Table body text</div></div>
+      </div>
+      <div class="swatch-card" onclick="copyHex('#8898A8','Text Muted')">
+        <div class="swatch-color" style="background:#8898A8;height:48px"><div class="copy-indicator">Copy</div></div>
+        <div class="swatch-meta"><div class="swatch-label">Text Muted</div><div class="swatch-hex">#8898A8</div><div class="swatch-use">Axis labels · Footnotes · Captions</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  02 VIOLATIONS -->
+<section class="section" id="violations">
+<div class="section-inner">
+  <div class="section-tag">02 · Violation Type Palette</div>
+  <h2>Violation Types — Color System</h2>
+  <p class="section-lead">Six distinct colors, each permanently assigned to one violation type. This palette occupies the <strong>cool-dark chromatic region</strong> (deep navy, cobalt, teal, indigo, wine, forest). Red and yellow are excluded. Hover to expand. Click to copy.</p>
+
+  <div class="callout">
+    <strong>Separation Principle:</strong> The violation palette (cool/dark), perpetrator palette (warm/earth), and gender palette (vivid/bright) are drawn from entirely different chromatic families. No color in any palette is visually similar to any color in another.
+  </div>
+
+  <div class="swatch-grid mt-md" style="grid-template-columns:repeat(3,1fr)">
+    <div class="swatch-card" onclick="copyHex('#0D1F3C','Killed')">
+      <div class="swatch-color" style="background:#0D1F3C"><div class="copy-indicator">Copy #0D1F3C</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Killed</div><div class="swatch-hex">#0D1F3C</div>
+        <div class="swatch-use">Midnight Navy — the most severe outcome, anchored in brand primary. Highest visual weight.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#1565C0','Injured')">
+      <div class="swatch-color" style="background:#1565C0"><div class="copy-indicator">Copy #1565C0</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Injured</div><div class="swatch-hex">#1565C0</div>
+        <div class="swatch-use">Cobalt Blue — physically harmed. Clear distinction from Killed. Same hue family, lighter.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#00695C','Abducted')">
+      <div class="swatch-color" style="background:#00695C"><div class="copy-indicator">Copy #00695C</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Abducted</div><div class="swatch-hex">#00695C</div>
+        <div class="swatch-use">Dark Emerald — deprivation of freedom. Warm-cool teal, fully distinct from blue family.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#4527A0','CRSV')">
+      <div class="swatch-color" style="background:#4527A0"><div class="copy-indicator">Copy #4527A0</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">CRSV</div><div class="swatch-hex">#4527A0</div>
+        <div class="swatch-use">Deep Indigo-Violet — conflict-related sexual violence. Distinctive chromatic territory.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#6A1B4D','SGBV')">
+      <div class="swatch-color" style="background:#6A1B4D"><div class="copy-indicator">Copy #6A1B4D</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">SGBV</div><div class="swatch-hex">#6A1B4D</div>
+        <div class="swatch-use">Deep Wine — sexual and gender-based violence. Maroon-purple, related to CRSV but distinct.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#2E7D32','Arbitrary Arrest')">
+      <div class="swatch-color" style="background:#2E7D32"><div class="copy-indicator">Copy #2E7D32</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Arbitrary Arrest / Detention</div><div class="swatch-hex">#2E7D32</div>
+        <div class="swatch-use">Forest Green — administrative violation. Clearly differentiated from physical harm categories.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-md">
+    <div class="sub-desc">Violation palette preview — hover segments to expand</div>
+    <div class="palette-showcase" id="violationShowcase">
+      <div class="ps-item" style="background:#0D1F3C" data-hex="#0D1F3C" data-name="Killed">
+        <div class="ps-item-tooltip">Killed · #0D1F3C</div>
+        <div class="ps-item-label">KILLED</div>
+      </div>
+      <div class="ps-item" style="background:#1565C0" data-hex="#1565C0" data-name="Injured">
+        <div class="ps-item-tooltip">Injured · #1565C0</div>
+        <div class="ps-item-label">INJURED</div>
+      </div>
+      <div class="ps-item" style="background:#00695C" data-hex="#00695C" data-name="Abducted">
+        <div class="ps-item-tooltip">Abducted · #00695C</div>
+        <div class="ps-item-label">ABDUCTED</div>
+      </div>
+      <div class="ps-item" style="background:#4527A0" data-hex="#4527A0" data-name="CRSV">
+        <div class="ps-item-tooltip">CRSV · #4527A0</div>
+        <div class="ps-item-label">CRSV</div>
+      </div>
+      <div class="ps-item" style="background:#6A1B4D" data-hex="#6A1B4D" data-name="SGBV">
+        <div class="ps-item-tooltip">SGBV · #6A1B4D</div>
+        <div class="ps-item-label">SGBV</div>
+      </div>
+      <div class="ps-item" style="background:#2E7D32" data-hex="#2E7D32" data-name="Arbitrary">
+        <div class="ps-item-tooltip">Arbitrary Arrest · #2E7D32</div>
+        <div class="ps-item-label" style="font-size:6.5px">ARB. ARREST</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  03 PERPETRATORS -->
+<section class="section" id="perpetrators">
+<div class="section-inner">
+  <div class="section-tag">03 · Perpetrator Group Palette</div>
+  <h2>Perpetrator Groups — Color System</h2>
+  <p class="section-lead">Three colors in the <strong>warm earth and neutral grey family</strong> — visually in a completely different chromatic region from violations (cool) and gender (vivid). Q1 2026: CBM/CDGs 67% · Conventional 28% · Unidentified 5%.</p>
+
+  <div class="swatch-grid mt-md" style="grid-template-columns:repeat(3,1fr)">
+    <div class="swatch-card" onclick="copyHex('#B45309','CBM/CDGs')">
+      <div class="swatch-color" style="background:#B45309;height:88px"><div class="copy-indicator">Copy #B45309</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Community-based Militias / CDGs</div>
+        <div class="swatch-hex">#B45309 · Dark Amber</div>
+        <div class="swatch-use">Warm amber-ochre. Not red, not yellow. The dominant perpetrator category. Use heaviest weight.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#374151','Conventional')">
+      <div class="swatch-color" style="background:#374151;height:88px"><div class="copy-indicator">Copy #374151</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Conventional Parties &amp; Armed Groups</div>
+        <div class="swatch-hex">#374151 · Dark Slate</div>
+        <div class="swatch-use">Blue-grey slate. Incl. SSPDF, SPLA-IO, NAS, allied forces. Neutral-cool earth tone.</div>
+      </div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#78909C','Unidentified')">
+      <div class="swatch-color" style="background:#78909C;height:88px"><div class="copy-indicator">Copy #78909C</div></div>
+      <div class="swatch-meta">
+        <div class="swatch-label">Unidentified / Opportunistic</div>
+        <div class="swatch-hex">#78909C · Steel Grey</div>
+        <div class="swatch-use">Medium steel grey. Unknown or opportunistic elements. Lower visual weight reflects smaller share.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-md">
+    <div class="sub-desc">Q1 2026 distribution — bars proportional to victim share</div>
+    <div class="palette-showcase">
+      <div class="ps-item" style="background:#B45309;flex:3" data-name="CBM/CDGs">
+        <div class="ps-item-tooltip">CBM/CDGs · #B45309 · 67%</div>
+        <div class="ps-item-label">COMMUNITY-BASED MILITIAS / CDGs · 67%</div>
+      </div>
+      <div class="ps-item" style="background:#374151;flex:1.5" data-name="Conventional">
+        <div class="ps-item-tooltip">Conventional · #374151 · 28%</div>
+        <div class="ps-item-label">CONVENTIONAL · 28%</div>
+      </div>
+      <div class="ps-item" style="background:#78909C;flex:0.4" data-name="Unidentified">
+        <div class="ps-item-tooltip">Unidentified · #78909C · 5%</div>
+        <div class="ps-item-label" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:7px">UNID.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  04 GENDER -->
+<section class="section" id="gender">
+<div class="section-inner">
+  <div class="section-tag">04 · Gender Disaggregation Palette</div>
+  <h2>Gender &amp; Age Disaggregation — Color System</h2>
+  <p class="section-lead">Four vivid, high-contrast colors in the <strong>sky-blue and raspberry-pink family</strong> — categorically distinct from violations (dark/cool) and perpetrators (warm earth). Adult/child pairs graduate in saturation. Q1 2026: Men 75.1% · Women 15.7% · Boys 6.1% · Girls 3.1%.</p>
+
+  <div class="swatch-grid mt-md" style="grid-template-columns:repeat(4,1fr)">
+    <div class="swatch-card" onclick="copyHex('#0277BD','Men')">
+      <div class="swatch-color" style="background:#0277BD;height:88px"><div class="copy-indicator">Copy #0277BD</div></div>
+      <div class="swatch-meta"><div class="swatch-label">Men</div><div class="swatch-hex">#0277BD</div><div class="swatch-use">Ocean Blue. Adult male. Vivid, high-saturation anchor of the male pair.</div></div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#4FC3F7','Boys')">
+      <div class="swatch-color" style="background:#4FC3F7;height:88px"><div class="copy-indicator">Copy #4FC3F7</div></div>
+      <div class="swatch-meta"><div class="swatch-label">Boys</div><div class="swatch-hex">#4FC3F7</div><div class="swatch-use">Sky Blue. Male child. Lighter graduation — same family, noticeably lighter than Men.</div></div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#C2185B','Women')">
+      <div class="swatch-color" style="background:#C2185B;height:88px"><div class="copy-indicator">Copy #C2185B</div></div>
+      <div class="swatch-meta"><div class="swatch-label">Women</div><div class="swatch-hex">#C2185B</div><div class="swatch-use">Deep Raspberry. Adult female. Opposite hue family from Men — unmistakable contrast.</div></div>
+    </div>
+    <div class="swatch-card" onclick="copyHex('#F48FB1','Girls')">
+      <div class="swatch-color" style="background:#F48FB1;height:88px"><div class="copy-indicator">Copy #F48FB1</div></div>
+      <div class="swatch-meta"><div class="swatch-label">Girls</div><div class="swatch-hex">#F48FB1</div><div class="swatch-use">Blush Pink. Female child. Lighter graduation of Women. Clearly distinct from Boys.</div></div>
+    </div>
+  </div>
+
+  <div class="callout mt-md">
+    <strong>Ordering Rule:</strong> When displaying all four gender categories, always order Men → Women → Boys → Girls. Adult categories precede child categories; blue family precedes pink family. This ordering is consistent across all chart types including stacked bars, waffle charts, and icon arrays.
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  05 STATES -->
+<section class="section" id="states">
+<div class="section-inner">
+  <div class="section-tag">05 · Geographic Palette</div>
+  <h2>State-Level Colors — South Sudan</h2>
+  <p class="section-lead">Ten perceptually distinct colors for the ten states. Used in multi-state comparison charts and qualitative choropleth maps. All tested for color vision deficiency compatibility.</p>
+  <div class="mt-md" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+    <div class="swatch-card" onclick="copyHex('#1A3260','Jonglei')"><div class="swatch-color" style="background:#1A3260;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Jonglei</div><div class="swatch-hex">#1A3260</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#0277BD','Unity')"><div class="swatch-color" style="background:#0277BD;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Unity</div><div class="swatch-hex">#0277BD</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#00695C','Warrap')"><div class="swatch-color" style="background:#00695C;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Warrap</div><div class="swatch-hex">#00695C</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#4527A0','Central Equatoria')"><div class="swatch-color" style="background:#4527A0;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Central Equatoria</div><div class="swatch-hex">#4527A0</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#2E7D32','Western Equatoria')"><div class="swatch-color" style="background:#2E7D32;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Western Equatoria</div><div class="swatch-hex">#2E7D32</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#C2185B','Lakes')"><div class="swatch-color" style="background:#C2185B;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Lakes</div><div class="swatch-hex">#C2185B</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#0097A7','Upper Nile')"><div class="swatch-color" style="background:#0097A7;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Upper Nile</div><div class="swatch-hex">#0097A7</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#558B2F','Eastern Equatoria')"><div class="swatch-color" style="background:#558B2F;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">Eastern Equatoria</div><div class="swatch-hex">#558B2F</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#6A1B4D','W. Bahr el Ghazal')"><div class="swatch-color" style="background:#6A1B4D;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">W. Bahr el Ghazal</div><div class="swatch-hex">#6A1B4D</div></div></div>
+    <div class="swatch-card" onclick="copyHex('#607D8B','N. Bahr el Ghazal')"><div class="swatch-color" style="background:#607D8B;height:44px"><div class="copy-indicator">Copy</div></div><div class="swatch-meta"><div class="swatch-label" style="font-size:12px">N. Bahr el Ghazal</div><div class="swatch-hex">#607D8B</div></div></div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  06 SEQUENTIAL -->
+<section class="section" id="sequential">
+<div class="section-inner">
+  <div class="section-tag">06 · Sequential Scales</div>
+  <h2>Sequential &amp; Intensity Scales</h2>
+  <p class="section-lead">Used for choropleth maps, heatmaps, and any single-variable intensity visualization. Hover any step to expand. Always prefer the Navy scale as primary; use Teal as secondary when two intensity maps appear on the same page.</p>
+
+  <div class="sub">
+    <div class="sub-title"><h3>Navy Sequential — Primary</h3><div class="sub-title-line"></div></div>
+    <div class="seq-bar">
+      <div class="seq-step" style="background:#E8EDF7"><span style="color:#8898A8">#E8EDF7</span></div>
+      <div class="seq-step" style="background:#BDD0EE"><span style="color:#5A6A80">#BDD0EE</span></div>
+      <div class="seq-step" style="background:#7FAAD8"><span style="color:#fff">#7FAAD8</span></div>
+      <div class="seq-step" style="background:#4880BC"><span style="color:#fff">#4880BC</span></div>
+      <div class="seq-step" style="background:#1E5592"><span style="color:rgba(255,255,255,.85)">#1E5592</span></div>
+      <div class="seq-step" style="background:#0D2E68"><span style="color:rgba(255,255,255,.8)">#0D2E68</span></div>
+    </div>
+    <div class="seq-ends"><span>Fewest victims / incidents</span><span>Most victims / incidents</span></div>
+  </div>
+
+  <div class="sub">
+    <div class="sub-title"><h3>Teal Sequential — Secondary</h3><div class="sub-title-line"></div></div>
+    <div class="seq-bar">
+      <div class="seq-step" style="background:#E0F5F2"><span style="color:#5A7A78">#E0F5F2</span></div>
+      <div class="seq-step" style="background:#99E0D8"><span style="color:#4A6A68">#99E0D8</span></div>
+      <div class="seq-step" style="background:#55C0B5"><span style="color:#fff">#55C0B5</span></div>
+      <div class="seq-step" style="background:#22988D"><span style="color:#fff">#22988D</span></div>
+      <div class="seq-step" style="background:#0D7268"><span style="color:rgba(255,255,255,.85)">#0D7268</span></div>
+      <div class="seq-step" style="background:#054D47"><span style="color:rgba(255,255,255,.8)">#054D47</span></div>
+    </div>
+    <div class="seq-ends"><span>Fewest</span><span>Most</span></div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  07 TYPOGRAPHY -->
+<section class="section" id="typography">
+<div class="section-inner">
+  <div class="section-tag">07 · Typography System</div>
+  <h2>Type System — IBM Plex</h2>
+  <p class="section-lead">IBM Plex Sans is the exclusive typeface for all UNMISS HRD data outputs. Designed for technical and data-dense environments, it offers exceptional legibility at small sizes, institutional authority, and an extensive weight range. No substitutions permitted.</p>
+
+  <div class="font-spec-grid">
+    <div class="font-spec-box">
+      <div class="fs-tag">Primary — All Text &amp; UI</div>
+      <div class="fs-name" style="font-family:'IBM Plex Sans',sans-serif">IBM Plex Sans</div>
+      <div class="fs-desc">300 Light · 400 Regular · 500 Medium · 600 SemiBold · 700 Bold · 400 Italic</div>
+      <div class="fs-use">Headlines · Body · Labels · Legends · KFI numbers · Section titles</div>
+    </div>
+    <div class="font-spec-box">
+      <div class="fs-tag">Condensed — Tight Spaces</div>
+      <div class="fs-name" style="font-family:'IBM Plex Sans Condensed',sans-serif">IBM Plex Condensed</div>
+      <div class="fs-desc">400 Regular · 600 SemiBold · 700 Bold</div>
+      <div class="fs-use">Axis tick labels · Side panel text · Legend items at small sizes · Infographic badges</div>
+    </div>
+    <div class="font-spec-box">
+      <div class="fs-tag">Mono — Data &amp; References</div>
+      <div class="fs-name" style="font-family:'IBM Plex Mono',monospace">IBM Plex Mono</div>
+      <div class="fs-desc">400 Regular · 500 Medium</div>
+      <div class="fs-use">Source citations · Hex values · Statistical IDs · Footnotes · Table references</div>
+    </div>
+  </div>
+
+  <div class="callout mt-md">
+    <strong>Download:</strong> IBM Plex is free and open-source — <span class="inline-code">fonts.google.com/specimen/IBM+Plex+Sans</span> and <span class="inline-code">github.com/IBM/plex</span>. External designers must install the complete IBM Plex family before beginning work. Substitution with Arial, Helvetica, Open Sans, or any other family is not permitted.
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  08 TYPE SCALE -->
+<section class="section" id="typescale">
+<div class="section-inner">
+  <div class="section-tag">08 · Type Scale</div>
+  <h2>Complete Type Scale &amp; Usage Rules</h2>
+  <p class="section-lead">Every text element in every HRD output has a specified size, weight, color, and use context. These are not suggestions — they are binding specifications. pt = print · px = digital/screen.</p>
+
+  <div class="type-table-wrap">
+    <table class="type-tbl">
+      <thead>
+        <tr>
+          <th style="width:160px">Element</th>
+          <th>Preview</th>
+          <th>Family</th>
+          <th>Weight</th>
+          <th>Size</th>
+          <th>Color</th>
+          <th style="width:200px">Usage Context</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Infographic Title</strong></td>
+          <td class="type-preview-cell"><span style="font-size:22px;font-weight:700;color:#0D1F3C;line-height:1">Human Rights Update</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#0D1F3C;color:#fff">700 Bold</span></td>
+          <td>28pt / 38px</td>
+          <td><span class="mono-pill">#0D1F3C</span></td>
+          <td>Main title — always in dark header panel</td>
+        </tr>
+        <tr>
+          <td><strong>Report Title</strong></td>
+          <td class="type-preview-cell"><span style="font-size:17px;font-weight:700;color:#0D1F3C">Q1 2026 Update</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#0D1F3C;color:#fff">700 Bold</span></td>
+          <td>18pt / 24px</td>
+          <td><span class="mono-pill">#0D1F3C</span></td>
+          <td>Word report cover · Section H1</td>
+        </tr>
+        <tr>
+          <td><strong>Section Heading</strong></td>
+          <td class="type-preview-cell"><span style="font-size:14px;font-weight:600;color:#1A3260">Civilian Casualties</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#1A3260;color:#fff">600 SemiBold</span></td>
+          <td>14pt / 18px</td>
+          <td><span class="mono-pill">#1A3260</span></td>
+          <td>Infographic section labels — uppercase tracked</td>
+        </tr>
+        <tr>
+          <td><strong>Chart Title</strong></td>
+          <td class="type-preview-cell"><span style="font-size:13px;font-weight:600;color:#0D1F3C">Victims by Perpetrator Group</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#374151;color:#fff">600 SemiBold</span></td>
+          <td>11pt / 14px</td>
+          <td><span class="mono-pill">#0D1F3C</span></td>
+          <td>Directly above every chart. Always present.</td>
+        </tr>
+        <tr>
+          <td><strong>Chart Subtitle</strong></td>
+          <td class="type-preview-cell"><span style="font-size:11.5px;font-weight:400;color:#8898A8;font-style:italic">January–March 2026</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#DDE3EE;color:#4A5568">400 Italic</span></td>
+          <td>9.5pt / 12px</td>
+          <td><span class="mono-pill">#8898A8</span></td>
+          <td>Time period, scope, or clarifying note</td>
+        </tr>
+        <tr>
+          <td><strong>Big Number (KFI)</strong></td>
+          <td class="type-preview-cell"><span style="font-size:36px;font-weight:700;color:#1A3260;line-height:1">1,355</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#0D1F3C;color:#fff">700 Bold</span></td>
+          <td>42pt / 56px</td>
+          <td>violation color</td>
+          <td>Key figure indicators in infographic panels</td>
+        </tr>
+        <tr>
+          <td><strong>KFI Label</strong></td>
+          <td class="type-preview-cell"><span style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8898A8;font-family:'IBM Plex Sans Condensed',sans-serif">TOTAL VICTIMS</span></td>
+          <td><span class="mono-pill">IBM Plex Condensed</span></td>
+          <td><span class="w-pill" style="background:#0D1F3C;color:#fff">700 Bold</span></td>
+          <td>7.5pt / 9.5px</td>
+          <td>rgba(255,255,255,.4)</td>
+          <td>Caption below KFI — ALL CAPS, tracked 0.12em</td>
+        </tr>
+        <tr>
+          <td><strong>Axis Labels</strong></td>
+          <td class="type-preview-cell"><span style="font-size:10.5px;color:#8898A8;font-family:'IBM Plex Sans Condensed',sans-serif">Q1-2025 · Q4-2025 · Q1-2026</span></td>
+          <td><span class="mono-pill">IBM Plex Condensed</span></td>
+          <td><span class="w-pill" style="background:#DDE3EE;color:#4A5568">400 Regular</span></td>
+          <td>8pt / 10.5px</td>
+          <td><span class="mono-pill">#8898A8</span></td>
+          <td>X and Y axis tick labels on all charts</td>
+        </tr>
+        <tr>
+          <td><strong>Data Labels</strong></td>
+          <td class="type-preview-cell"><span style="font-size:12px;font-weight:600;color:#0D1F3C">737</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#374151;color:#fff">600 SemiBold</span></td>
+          <td>9pt / 11.5px</td>
+          <td>#0D1F3C or #FFFFFF</td>
+          <td>Values on bars, lines, donut segments</td>
+        </tr>
+        <tr>
+          <td><strong>Legend Text</strong></td>
+          <td class="type-preview-cell"><span style="font-size:11px;font-weight:500;color:#4A5568">● Community-based Militias</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#DDE3EE;color:#4A5568">500 Medium</span></td>
+          <td>8.5pt / 11px</td>
+          <td><span class="mono-pill">#4A5568</span></td>
+          <td>Legend entries for all chart types</td>
+        </tr>
+        <tr>
+          <td><strong>Body / Highlights</strong></td>
+          <td class="type-preview-cell"><span style="font-size:12px;color:#0D1F3C">At least 1,355 civilians were affected…</span></td>
+          <td><span class="mono-pill">IBM Plex Sans</span></td>
+          <td><span class="w-pill" style="background:#DDE3EE;color:#4A5568">400 Regular</span></td>
+          <td>9pt / 11.5px</td>
+          <td><span class="mono-pill">#0D1F3C</span></td>
+          <td>Highlights text · Body paragraphs</td>
+        </tr>
+        <tr>
+          <td><strong>Source / Footnote</strong></td>
+          <td class="type-preview-cell"><span style="font-size:9.5px;font-family:'IBM Plex Mono',monospace;color:#8898A8">Source: UNMISS HRD · Jan–Mar 2026</span></td>
+          <td><span class="mono-pill">IBM Plex Mono</span></td>
+          <td><span class="w-pill" style="background:#DDE3EE;color:#4A5568">400 Regular</span></td>
+          <td>7pt / 9px</td>
+          <td><span class="mono-pill">#8898A8</span></td>
+          <td>Source lines — mandatory on every chart</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  09 VIZ TYPES -->
+<section class="section" id="viztypes">
+<div class="section-inner">
+  <div class="section-tag">09 · Visualization Types</div>
+  <h2>Recommended Chart Types</h2>
+  <p class="section-lead">Not all chart types suit HRD data. The following are approved for use — selected for communicating human rights data clearly to government officials, donors, and media. Hover cards to see use context.</p>
+
+  <div class="viz-grid mt-md">
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <line x1="20" y1="90" x2="150" y2="90" stroke="#DDE3EE" stroke-width="1"/>
+          <rect x="28" y="52" width="22" height="38" fill="#0D1F3C" rx="2"/>
+          <rect x="56" y="35" width="22" height="55" fill="#1565C0" rx="2"/>
+          <rect x="84" y="18" width="22" height="72" fill="#00695C" rx="2"/>
+          <rect x="112" y="42" width="22" height="48" fill="#4527A0" rx="2"/>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Categorical</div>
+        <h5>Vertical Bar Chart</h5>
+        <p>Compare discrete violation types or time periods. Ideal for KFI comparisons across quarters.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Comparison</span>
+          <span class="viz-tag" style="background:#E8F5F0;color:#00695C">Trend</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <rect x="40" y="12" width="100" height="14" fill="#0D1F3C" rx="2"/>
+          <rect x="40" y="31" width="72" height="14" fill="#1565C0" rx="2"/>
+          <rect x="40" y="50" width="115" height="14" fill="#00695C" rx="2"/>
+          <rect x="40" y="69" width="44" height="14" fill="#4527A0" rx="2"/>
+          <text x="12" y="23" font-size="9" fill="#8898A8" text-anchor="end" font-family="IBM Plex Sans,sans-serif">Jonglei</text>
+          <text x="12" y="42" font-size="9" fill="#8898A8" text-anchor="end" font-family="IBM Plex Sans,sans-serif">Warrap</text>
+          <text x="12" y="61" font-size="9" fill="#8898A8" text-anchor="end" font-family="IBM Plex Sans,sans-serif">Unity</text>
+          <text x="12" y="80" font-size="9" fill="#8898A8" text-anchor="end" font-family="IBM Plex Sans,sans-serif">C. Equatoria</text>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Ranked</div>
+        <h5>Horizontal Bar Chart</h5>
+        <p>Ranking states, counties, or categories with long labels. Preferred for geographic comparisons.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Comparison</span>
+          <span class="viz-tag" style="background:#F5EDF5;color:#4527A0">Geographic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <line x1="15" y1="90" x2="150" y2="90" stroke="#DDE3EE" stroke-width="1"/>
+          <g transform="translate(25,0)">
+            <rect x="0" y="35" width="18" height="55" fill="#0D1F3C" rx="2"/>
+            <rect x="0" y="55" width="18" height="35" fill="#1565C0" rx="2"/>
+            <rect x="0" y="70" width="18" height="20" fill="#00695C" rx="2"/>
+          </g>
+          <g transform="translate(55,0)">
+            <rect x="0" y="20" width="18" height="70" fill="#0D1F3C" rx="2"/>
+            <rect x="0" y="43" width="18" height="47" fill="#1565C0" rx="2"/>
+            <rect x="0" y="60" width="18" height="30" fill="#00695C" rx="2"/>
+          </g>
+          <g transform="translate(85,0)">
+            <rect x="0" y="10" width="18" height="80" fill="#0D1F3C" rx="2"/>
+            <rect x="0" y="35" width="18" height="55" fill="#1565C0" rx="2"/>
+            <rect x="0" y="58" width="18" height="32" fill="#00695C" rx="2"/>
+          </g>
+          <g transform="translate(115,0)">
+            <rect x="0" y="28" width="18" height="62" fill="#0D1F3C" rx="2"/>
+            <rect x="0" y="50" width="18" height="40" fill="#1565C0" rx="2"/>
+            <rect x="0" y="68" width="18" height="22" fill="#00695C" rx="2"/>
+          </g>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Proportional</div>
+        <h5>Stacked Bar Chart</h5>
+        <p>Part-to-whole with temporal or categorical breakdown. Ideal for violation type mix across states.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E9F7F5;color:#00695C">Proportion</span>
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Comparison</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <line x1="20" y1="85" x2="150" y2="85" stroke="#DDE3EE" stroke-width="1"/>
+          <polyline points="20,68 44,52 68,60 92,28 116,38 140,18" fill="none" stroke="#0D1F3C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <polyline points="20,78 44,70 68,74 92,60 116,64 140,52" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/>
+          <circle cx="92" cy="28" r="3.5" fill="#0D1F3C"/>
+          <circle cx="140" cy="18" r="3.5" fill="#0D1F3C"/>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Time Series</div>
+        <h5>Line / Area Chart</h5>
+        <p>Monthly or quarterly trends over extended periods. Use for perpetrator trend analysis.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Trend</span>
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Comparison</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <circle cx="80" cy="50" r="36" fill="none" stroke="#E8EDF7" stroke-width="16"/>
+          <path d="M80,14 A36,36 0 0,1 116,50" fill="none" stroke="#0D1F3C" stroke-width="16"/>
+          <path d="M116,50 A36,36 0 0,1 94,80" fill="none" stroke="#1565C0" stroke-width="16"/>
+          <path d="M94,80 A36,36 0 0,1 58,72" fill="none" stroke="#00695C" stroke-width="16"/>
+          <path d="M58,72 A36,36 0 0,1 80,14" fill="none" stroke="#4527A0" stroke-width="16"/>
+          <circle cx="80" cy="50" r="20" fill="white"/>
+          <text x="80" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#0D1F3C" font-family="IBM Plex Sans,sans-serif">1,355</text>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Proportional</div>
+        <h5>Donut Chart</h5>
+        <p>Violation type proportions or perpetrator shares — maximum 5 segments. Total in centre.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E9F7F5;color:#00695C">Proportion</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <g>
+            <circle cx="40" cy="50" r="10" fill="none" stroke="#DDE3EE" stroke-width="1.5"/>
+            <circle cx="40" cy="50" r="2.5" fill="#0277BD"/>
+            <circle cx="120" cy="30" r="10" fill="none" stroke="#DDE3EE" stroke-width="1.5"/>
+            <circle cx="120" cy="30" r="2.5" fill="#0277BD"/>
+            <line x1="40" y1="50" x2="120" y2="30" stroke="#0277BD" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <text x="38" y="72" font-size="9" fill="#8898A8" text-anchor="middle" font-family="IBM Plex Sans,sans-serif">Q4-25</text>
+            <text x="122" y="50" font-size="9" fill="#8898A8" text-anchor="start" font-family="IBM Plex Sans,sans-serif">Q1-26</text>
+            <text x="30" y="48" font-size="9" font-weight="700" fill="#0D1F3C" text-anchor="end" font-family="IBM Plex Sans,sans-serif">830</text>
+            <text x="132" y="28" font-size="9" font-weight="700" fill="#0D1F3C" font-family="IBM Plex Sans,sans-serif">1355</text>
+          </g>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Change</div>
+        <h5>Slope / Dumbbell Chart</h5>
+        <p>Quarter-on-quarter change, before/after comparisons. Shows direction and magnitude at a glance.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Trend</span>
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Change</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <rect x="10" y="10" width="66" height="44" rx="3" fill="#0D1F3C" opacity=".9"/>
+          <rect x="80" y="10" width="72" height="22" rx="3" fill="#B45309" opacity=".85"/>
+          <rect x="10" y="58" width="40" height="32" rx="3" fill="#00695C" opacity=".85"/>
+          <rect x="54" y="58" width="98" height="15" rx="3" fill="#4527A0" opacity=".8"/>
+          <rect x="54" y="76" width="54" height="14" rx="3" fill="#78909C" opacity=".8"/>
+          <text x="43" y="36" text-anchor="middle" font-size="8" fill="white" font-weight="700" font-family="IBM Plex Sans,sans-serif">Jonglei 444</text>
+          <text x="116" y="24" text-anchor="middle" font-size="7.5" fill="white" font-weight="600" font-family="IBM Plex Sans,sans-serif">Warrap 260</text>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Proportional</div>
+        <h5>Treemap</h5>
+        <p>State-level victim volume with proportional area. Powerful for showing relative scale at a glance.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E9F7F5;color:#00695C">Proportion</span>
+          <span class="viz-tag" style="background:#F5EDF5;color:#4527A0">Geographic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <rect x="15" y="15" width="130" height="70" rx="4" fill="#E8EDF7"/>
+          <circle cx="50" cy="45" r="9" fill="#0D1F3C" opacity=".85"/>
+          <circle cx="75" cy="32" r="13" fill="#0D1F3C" opacity=".9"/>
+          <circle cx="100" cy="55" r="6" fill="#B45309" opacity=".8"/>
+          <circle cx="60" cy="65" r="5" fill="#00695C" opacity=".8"/>
+          <circle cx="110" cy="28" r="16" fill="#0D1F3C" opacity=".85"/>
+          <circle cx="40" cy="70" r="4" fill="#78909C" opacity=".8"/>
+          <text x="110" y="32" text-anchor="middle" font-size="7" fill="white" font-weight="700" font-family="IBM Plex Sans,sans-serif">444</text>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Geographic</div>
+        <h5>Bubble / Dot Map</h5>
+        <p>Hotspot mapping and incident density. Bubble area — not radius — scales to data value.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#F5EDF5;color:#4527A0">Geographic</span>
+          <span class="viz-tag" style="background:#E9F7F5;color:#00695C">Distribution</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-thumb">
+        <svg viewBox="0 0 160 100" width="160" height="100">
+          <g>
+            <rect x="12" y="12" width="11" height="11" rx="2" fill="#0277BD"/><rect x="26" y="12" width="11" height="11" rx="2" fill="#0277BD"/>
+            <rect x="40" y="12" width="11" height="11" rx="2" fill="#0277BD"/><rect x="54" y="12" width="11" height="11" rx="2" fill="#0277BD"/>
+            <rect x="68" y="12" width="11" height="11" rx="2" fill="#0277BD"/><rect x="82" y="12" width="11" height="11" rx="2" fill="#0277BD"/>
+            <rect x="96" y="12" width="11" height="11" rx="2" fill="#C2185B"/><rect x="110" y="12" width="11" height="11" rx="2" fill="#C2185B"/>
+            <rect x="124" y="12" width="11" height="11" rx="2" fill="#C2185B"/>
+            <rect x="12" y="27" width="11" height="11" rx="2" fill="#0277BD"/><rect x="26" y="27" width="11" height="11" rx="2" fill="#0277BD"/>
+            <rect x="40" y="27" width="11" height="11" rx="2" fill="#4FC3F7"/><rect x="54" y="27" width="11" height="11" rx="2" fill="#4FC3F7"/>
+            <rect x="68" y="27" width="11" height="11" rx="2" fill="#F48FB1"/><rect x="82" y="27" width="11" height="11" rx="2" fill="#F48FB1"/>
+          </g>
+          <text x="14" y="60" font-size="7.5" fill="#0277BD" font-weight="600" font-family="IBM Plex Sans,sans-serif">Men 75%</text>
+          <text x="14" y="72" font-size="7.5" fill="#C2185B" font-weight="600" font-family="IBM Plex Sans,sans-serif">Women 16%</text>
+          <text x="80" y="60" font-size="7.5" fill="#4FC3F7" font-weight="600" font-family="IBM Plex Sans,sans-serif">Boys 6%</text>
+          <text x="80" y="72" font-size="7.5" fill="#F48FB1" font-weight="600" font-family="IBM Plex Sans,sans-serif">Girls 3%</text>
+        </svg>
+      </div>
+      <div class="viz-meta">
+        <div class="viz-badge" style="background:rgba(45,107,228,.08);color:#2D6BE4">Distribution</div>
+        <h5>Waffle / Icon Array</h5>
+        <p>Gender disaggregation and proportion visualization for public-facing outputs.</p>
+        <div class="viz-tags">
+          <span class="viz-tag" style="background:#E9F7F5;color:#00695C">Proportion</span>
+          <span class="viz-tag" style="background:#E8EDF7;color:#1A3260">Distribution</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  10 MANDATORY -->
+<section class="section" id="mandatory">
+<div class="section-inner">
+  <div class="section-tag">10 · Mandatory Elements</div>
+  <h2>Mandatory Chart Elements</h2>
+  <p class="section-lead">Every chart produced by or for UNMISS HRD must include all Required elements. Missing required elements will necessitate revision before any publication or dissemination.</p>
+
+  <div class="mandatory-grid mt-md">
+    <div class="mand-card req"><div class="mand-type req">Required</div><h5>Chart Title</h5><p>Descriptive and specific. States what is shown. Example: "Civilian Victims by Violation Type — Q1 2026"</p></div>
+    <div class="mand-card req"><div class="mand-type req">Required</div><h5>Source Line</h5><p>Always: "Source: UNMISS Human Rights Division" with reporting period and applicable data caveats</p></div>
+    <div class="mand-card req"><div class="mand-type req">Required</div><h5>Legend / Key</h5><p>All color-encoded categories must be identified. No chart should require guesswork to interpret.</p></div>
+    <div class="mand-card req"><div class="mand-type req">Required</div><h5>Axis Labels</h5><p>Both axes labeled with variable name and unit. Example: "Number of Victims" · "Quarter (2023–2026)"</p></div>
+    <div class="mand-card req"><div class="mand-type req">Required</div><h5>Data Labels on Key Figures</h5><p>At minimum: highest and lowest values must be labeled directly on the chart. All values preferred.</p></div>
+    <div class="mand-card req"><div class="mand-type req">Required</div><h5>Time Period</h5><p>Always explicit. In title or subtitle: "January–March 2026 (Q1 2026)". Never ambiguous.</p></div>
+    <div class="mand-card rec"><div class="mand-type rec">Recommended</div><h5>Subtitle / Context</h5><p>Geographic scope, comparison baseline, or qualifying methodology note below the chart title</p></div>
+    <div class="mand-card rec"><div class="mand-type rec">Recommended</div><h5>Comparison Baseline</h5><p>Where trend analysis is relevant, prior period data should be shown or explicitly referenced</p></div>
+    <div class="mand-card rec"><div class="mand-type rec">Recommended</div><h5>Annotation Callouts</h5><p>Highlight notable events (e.g., "Abiemnom mass casualty event, March 2026") where visible in data</p></div>
+    <div class="mand-card ctx"><div class="mand-type ctx">Contextual</div><h5>Confidence Flags</h5><p>For data with known underreporting or pending verification, include a caveat indicator</p></div>
+    <div class="mand-card ctx"><div class="mand-type ctx">Contextual</div><h5>Map Boundary Disclaimer</h5><p>All maps: "Boundaries shown do not imply official endorsement by the United Nations." Minimum 7pt.</p></div>
+    <div class="mand-card ctx"><div class="mand-type ctx">Contextual</div><h5>Classification Statement</h5><p>Document classification and distribution (e.g., "For Official Use Only") where applicable</p></div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  11 SAMPLE CHARTS -->
+<section class="section" id="samples">
+<div class="section-inner">
+  <div class="section-tag">11 · Sample Charts</div>
+  <h2>Annotated Sample Charts — Live Q1 2026 Data</h2>
+  <p class="section-lead">All charts below are rendered from actual Q1 2026 data and demonstrate correct implementation of the color palettes, typography scale, mandatory elements, and annotation conventions.</p>
+
+  <div class="chart-grid mt-md">
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div class="chart-hd-left">
+          <div class="chart-hd-badge">Grouped Bar · Violation Palette</div>
+          <h4>Victims by Violation Type — Three-Quarter Comparison</h4>
+          <p>Q1-2025 · Q4-2025 · Q1-2026</p>
+        </div>
+      </div>
+      <div class="chart-bd">
+        <div class="chart-legend">
+          <div class="lg-item"><div class="lg-swatch" style="background:#0D1F3C"></div>Q1-2025</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#78909C"></div>Q4-2025</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#0277BD"></div>Q1-2026</div>
+        </div>
+        <div style="position:relative;width:100%;height:230px">
+          <canvas id="c1" role="img" aria-label="Grouped bar chart comparing violation types across three quarters. Killed: 739, 406, 737. Injured: 679, 264, 456. Abducted: 149, 106, 93. CRSV: 40, 54, 69."></canvas>
+        </div>
+      </div>
+      <div class="chart-ft">Source: UNMISS Human Rights Division · Period: Q1-2025, Q4-2025, Q1-2026 · Verified cases only</div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div class="chart-hd-left">
+          <div class="chart-hd-badge">Donut · Perpetrator Palette</div>
+          <h4>Victims by Perpetrator Group</h4>
+          <p>Q1 2026 — January to March 2026</p>
+        </div>
+      </div>
+      <div class="chart-bd">
+        <div style="position:relative;width:100%;height:270px">
+          <canvas id="c2" role="img" aria-label="Donut chart. CBM/CDGs: 910 (67%). Conventional: 375 (28%). Unidentified: 70 (5%)."></canvas>
+        </div>
+      </div>
+      <div class="chart-ft">Source: UNMISS HRD · Q1 2026 · Total: 1,355 victims · 203 incidents</div>
+    </div>
+
+    <div class="chart-card span-2">
+      <div class="chart-hd">
+        <div class="chart-hd-left">
+          <div class="chart-hd-badge">Horizontal Bar · Ranked · State Palette</div>
+          <h4>Total Victims by State — Q1 2026 (January to March)</h4>
+          <p>Ranked by victim count · Northern Bahr el Ghazal: zero documented incidents</p>
+        </div>
+      </div>
+      <div class="chart-bd">
+        <div style="position:relative;width:100%;height:310px">
+          <canvas id="c3" role="img" aria-label="Horizontal bar ranked by state. Jonglei 444, Warrap 260, Unity 258, Central Equatoria 126, Western Equatoria 97, Lakes 96, W. Bahr el Ghazal 60, Eastern Equatoria 11, Upper Nile 3."></canvas>
+        </div>
+      </div>
+      <div class="chart-ft">Source: UNMISS HRD · Q1 2026 · Grand Total: 1,355 victims across 9 of 10 states · 203 incidents</div>
+    </div>
+
+    <div class="chart-card span-2">
+      <div class="chart-hd">
+        <div class="chart-hd-left">
+          <div class="chart-hd-badge">Multi-Line Time Series · Perpetrator Palette</div>
+          <h4>Monthly Victims by Perpetrator Group — Jan 2023 to Mar 2026</h4>
+          <p>39-month trend analysis · Three perpetrator categories</p>
+        </div>
+      </div>
+      <div class="chart-bd">
+        <div class="chart-legend">
+          <div class="lg-item"><div class="lg-swatch" style="background:#B45309"></div>Community-based Militias / CDGs</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#374151"></div>Conventional Parties &amp; Armed Groups</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#78909C"></div>Unidentified / Opportunistic</div>
+        </div>
+        <div style="position:relative;width:100%;height:250px">
+          <canvas id="c4" role="img" aria-label="Multi-line chart showing monthly victims by perpetrator group, January 2023 to March 2026."></canvas>
+        </div>
+      </div>
+      <div class="chart-ft">Source: UNMISS HRD · Jan 2023 – Mar 2026 · Monthly verified victim counts</div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div class="chart-hd-left">
+          <div class="chart-hd-badge">Stacked Bar · Gender Palette</div>
+          <h4>Victims by Violation Type &amp; Sex/Age</h4>
+          <p>Q1 2026 · CRSV: male victims excluded per protocol</p>
+        </div>
+      </div>
+      <div class="chart-bd">
+        <div class="chart-legend">
+          <div class="lg-item"><div class="lg-swatch" style="background:#0277BD"></div>Men</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#C2185B"></div>Women</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#4FC3F7"></div>Boys</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#F48FB1"></div>Girls</div>
+        </div>
+        <div style="position:relative;width:100%;height:230px">
+          <canvas id="c5" role="img" aria-label="Stacked bar chart showing gender breakdown by violation type."></canvas>
+        </div>
+      </div>
+      <div class="chart-ft">Source: UNMISS HRD · Q1 2026 · N/A = category not applicable to violation type</div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div class="chart-hd-left">
+          <div class="chart-hd-badge">Grouped Bar · Three-Period</div>
+          <h4>Quarterly Totals — Q1-25 vs Q4-25 vs Q1-26</h4>
+          <p>All violation types and grand total</p>
+        </div>
+      </div>
+      <div class="chart-bd">
+        <div class="chart-legend">
+          <div class="lg-item"><div class="lg-swatch" style="background:#0D1F3C"></div>Q1-2025</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#78909C"></div>Q4-2025</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#0277BD"></div>Q1-2026</div>
+        </div>
+        <div style="position:relative;width:100%;height:250px">
+          <canvas id="c6" role="img" aria-label="Three-period grouped bar chart comparing all violation types."></canvas>
+        </div>
+      </div>
+      <div class="chart-ft">Source: UNMISS HRD · Q4-25→Q1-26: +63% total victims</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  12 MAPS -->
+<section class="section" id="maps">
+<div class="section-inner">
+  <div class="section-tag">12 · Map Guidelines</div>
+  <h2>Cartographic Standards</h2>
+  <p class="section-lead">Maps are produced using QGIS, ArcGIS, or validated web mapping libraries. Hand-drawn or traced maps are strictly prohibited. The UN boundary disclaimer is mandatory on all maps without exception.</p>
+  <div class="map-spec mt-md">
+    <div class="map-card"><h5>Choropleth Maps</h5><ul>
+      <li>Use Navy Sequential Scale (Section 06) for intensity</li>
+      <li>4–7 classification breaks; Natural Breaks (Jenks) preferred</li>
+      <li>Legend with numerical ranges, not color swatches only</li>
+      <li>State borders: 1pt #FFFFFF stroke; Country border: 1.5pt #4A5568</li>
+      <li>No-data areas: #DDE3EE fill, 0.5pt border</li>
+    </ul></div>
+    <div class="map-card"><h5>Proportional Symbol / Bubble Maps</h5><ul>
+      <li>Navy #0D1F3C for single-category; violation palette for multi-category</li>
+      <li>Bubble area — not radius — scales proportionally to data value</li>
+      <li>Minimum diameter: 4px · Maximum: 40px</li>
+      <li>Opacity: 0.75–0.85 for overlap visibility</li>
+      <li>Include 3-bubble size legend with labeled reference value</li>
+    </ul></div>
+    <div class="map-card"><h5>Mandatory Map Elements</h5><ul>
+      <li>Title — geographic scope + time period</li>
+      <li>Legend — all symbols and colors explained</li>
+      <li>Scale bar — all standalone maps</li>
+      <li>North arrow — all standalone maps</li>
+      <li>Source line — "Source: UNMISS HRD / OCHA"</li>
+      <li>UN boundary disclaimer — always present, min 7pt</li>
+      <li>HRD logo — bottom-right of map frame</li>
+    </ul></div>
+    <div class="map-card"><h5>Basemap Specifications</h5><ul>
+      <li>Background: #F4F6FA · Water: #C5DBF0</li>
+      <li>Adjacent countries: #EAE8E0 fill · #A8A098 label, 8pt Italic Condensed</li>
+      <li>South Sudan base: #F0EDE4</li>
+      <li>State labels: 8.5pt Medium IBM Plex Sans Condensed, uppercase, tracked</li>
+      <li>County labels: 7pt Regular, title case</li>
+      <li>Never use satellite/photo basemaps in published infographics</li>
+    </ul></div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  13-14 INFOGRAPHIC -->
+<section class="section" id="infographic">
+<div class="section-inner">
+  <div class="section-tag">13 · Layout Template</div>
+  <h2>Infographic Grid Specifications</h2>
+  <p class="section-lead">A standardized grid ensures cross-edition consistency while allowing content variation. All dimensions are specified for both A4/Letter landscape (print) and 1920×1080px (digital/screen).</p>
+  <div class="grid-3 mt-md">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px">
+      <div style="font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Format &amp; Dimensions</div>
+      <div style="font-size:12.5px;color:var(--text-2);line-height:2">A4 Landscape: 297 × 210mm<br>Letter Landscape: 279 × 216mm<br>Digital Wide: 1920 × 1080px<br>Margins: 12mm all sides<br>Gutter: 6mm between columns</div>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px">
+      <div style="font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Column Structure</div>
+      <div style="font-size:12.5px;color:var(--text-2);line-height:2">Header band: 100% width<br>Highlights band: 100% width<br>Key Figures panel: 25% left<br>Main Chart area: 75% right<br>Footer: 100% width</div>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px">
+      <div style="font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Color Zones</div>
+      <div style="font-size:12.5px;color:var(--text-2);line-height:2">Header: #0D1F3C background<br>Highlights band: #162447<br>Key Figures panel: #1A3260<br>Chart area: #F4F6FA background<br>Footer: #0D1F3C</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="section" id="mockup">
+<div class="section-inner">
+  <div class="section-tag">14 · Annotated Mockup</div>
+  <h2>Infographic Mockup — Q1 2026</h2>
+  <p class="section-lead">The mockup below demonstrates the correct layout, color zones, font hierarchy, and data placement. Each annotated element below the mockup corresponds to a specific typographic or design specification.</p>
+
+  <div class="mock-wrap mt-md">
+    <div class="mock-hd">
+      <div>
+        <div class="mock-hd-kicker">Violations and Abuses of International Human Rights and Humanitarian Law</div>
+        <h2 class="mock-hd">Human Rights Situation Update</h2>
+        <p>January to March 2026</p>
+        <div class="mock-period-badge">April 2026</div>
+      </div>
+      <img class="brand-logo brand-logo--mock" src="assets/unmiss-hrd-logo.png" alt="UNMISS Human Rights Division" width="160" height="48" loading="lazy">
+    </div>
+    <div class="mock-hl">
+      <div class="mock-hl-label">Highlights</div>
+      <p>In Q1 2026, at least <strong>1,355</strong> civilians were directly affected by violence across <strong>9 of 10 states</strong>, a <strong>63% increase</strong> vs Q4 2025. The Abiemnom mass casualty event (Unity State, March 2026) alone produced <strong>194 victims</strong>. Community-based militias and CDGs remained the leading perpetrators at <strong>67%</strong> of documented victims.</p>
+    </div>
+    <div class="mock-body">
+      <div class="mock-kf">
+        <div class="mock-kf-label">Key Figures — Q1 2026</div>
+        <div class="kf-row"><div class="kf-num" style="color:#fff">1,355</div><div class="kf-lbl">Total Victims</div></div>
+        <div class="kf-row"><div class="kf-num" style="color:#7EADEE">737</div><div class="kf-lbl" style="color:#4F88C0">Killed</div></div>
+        <div class="kf-row"><div class="kf-num" style="color:#82B8E8">456</div><div class="kf-lbl" style="color:#4F88C0">Injured</div></div>
+        <div class="kf-row"><div class="kf-num" style="color:#7ACFC9">93</div><div class="kf-lbl" style="color:#5ABFB8">Abducted</div></div>
+        <div class="kf-row"><div class="kf-num" style="color:#B899E0">69</div><div class="kf-lbl" style="color:#9E78C0">CRSV</div></div>
+        <div class="kf-row" style="border-bottom:none"><div class="kf-num" style="color:#aaa;font-size:20px">203</div><div class="kf-lbl">Incidents</div></div>
+      </div>
+      <div class="mock-charts-area">
+        <div class="mc-label">Victims by State — Q1 2026</div>
+        <div class="bar-row"><div class="bar-name">Jonglei</div><div class="bar-track"><div class="bar-fill" style="width:0%;background:#1A3260" data-target="100"></div></div><div class="bar-val">444</div></div>
+        <div class="bar-row"><div class="bar-name">Warrap</div><div class="bar-track"><div class="bar-fill" style="width:0%;background:#00695C" data-target="59"></div></div><div class="bar-val">260</div></div>
+        <div class="bar-row"><div class="bar-name">Unity</div><div class="bar-track"><div class="bar-fill" style="width:0%;background:#0277BD" data-target="58"></div></div><div class="bar-val">258</div></div>
+        <div class="bar-row"><div class="bar-name">C. Equatoria</div><div class="bar-track"><div class="bar-fill" style="width:0%;background:#4527A0" data-target="28"></div></div><div class="bar-val">126</div></div>
+        <div class="bar-row"><div class="bar-name">W. Equatoria</div><div class="bar-track"><div class="bar-fill" style="width:0%;background:#2E7D32" data-target="22"></div></div><div class="bar-val">97</div></div>
+        <div class="mock-gender">
+          <div class="mg-box"><div class="mg-n" style="color:#0277BD">1,018</div><div class="mg-l">Men · 75.1%</div></div>
+          <div class="mg-box"><div class="mg-n" style="color:#C2185B">213</div><div class="mg-l">Women · 15.7%</div></div>
+          <div class="mg-box"><div class="mg-n" style="color:#0097A7">82</div><div class="mg-l">Boys · 6.1%</div></div>
+          <div class="mg-box"><div class="mg-n" style="color:#C2185B;opacity:.6">42</div><div class="mg-l">Girls · 3.1%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mock-ft">
+      <span>Source: UNMISS Human Rights Division · April 2026</span>
+      <span>The boundaries and names shown do not imply official endorsement by the United Nations</span>
+      <span>For Official Use</span>
+    </div>
+  </div>
+
+  <div class="annotated-section mt-md">
+    <div class="sub-title"><h3>Font Specifications by Element</h3><div class="sub-title-line"></div></div>
+    <div class="annotation-row"><div class="ann-marker">Header Title</div><div class="ann-content"><h5>IBM Plex Sans · 700 Bold · 28pt / 38px · #FFFFFF</h5><p>The main infographic title. Always sits in the dark header panel (#0D1F3C background). Never smaller than 24pt. Line height 1.15. Max width 65% of total header width.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">Period Badge</div><div class="ann-content"><h5>IBM Plex Sans · 700 Bold · 9pt · ALL CAPS · tracking 0.12em · background: #2D6BE4</h5><p>Publication month badge. White text (#FFFFFF) on blue accent. Fixed border-radius 4px. Always immediately below subtitle line.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">Highlights Text</div><div class="ann-content"><h5>IBM Plex Sans · 400 Regular · 9pt · rgba(255,255,255,0.65)</h5><p>Bullet-pointed highlights. Key figures within running text: 500 Medium, color #7EADEE. Line height 1.6. Maximum 3 bullets of 1–2 lines each.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">KFI Big Number</div><div class="ann-content"><h5>IBM Plex Sans · 700 Bold · 28–42pt · violation color or #FFFFFF for totals</h5><p>Key Figure Indicators. Size scales with panel width. Total victims always #FFFFFF (highest importance). Individual violation types use their designated violation palette color at reduced opacity.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">KFI Label</div><div class="ann-content"><h5>IBM Plex Sans Condensed · 700 Bold · 7.5pt · ALL CAPS · tracking 0.12em · rgba(255,255,255,0.4)</h5><p>Caption below KFI number. Always uppercase, always tracked. Never sentence case. Color must remain at 40% opacity white — it must not compete with the KFI number above.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">Chart Area Title</div><div class="ann-content"><h5>IBM Plex Sans Condensed · 700 Bold · 8pt · ALL CAPS · tracking 0.12em · #8898A8</h5><p>Section label within the chart area. Distinguishes sub-sections (e.g., "Victims by State") from the main chart title. Always in the muted text color.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">Bar Labels</div><div class="ann-content"><h5>IBM Plex Sans · 400 Regular · 10pt · #4A5568 · right-aligned within fixed 90px width</h5><p>State or category names beside horizontal bars. Use Condensed variant when label count exceeds 7 entries. Consistent width allocation prevents bar misalignment.</p></div></div>
+    <div class="annotation-row"><div class="ann-marker">Footer Line</div><div class="ann-content"><h5>IBM Plex Mono · 400 Regular · 7pt · rgba(255,255,255,0.28)</h5><p>Three footer items: Source attribution (left) · UN boundary disclaimer (centre) · Classification (right). All monospace for precision and institutional formality. Never omit the boundary disclaimer.</p></div></div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════  15 DOS & DON'TS -->
+<section class="section" id="dosdonts">
+<div class="section-inner">
+  <div class="section-tag">15 · Dos &amp; Don'ts</div>
+  <h2>Standards &amp; Common Errors</h2>
+  <p class="section-lead">Binding constraints for all HRD data products. External designers should treat these as non-negotiable requirements, not stylistic preferences. Violating these rules will require revision.</p>
+
+  <div class="dos-grid mt-md">
+    <div class="do-box">
+      <div class="dod-title"><div class="dod-icon">✓</div>Color — Do</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Use exact hex values from this guide for every violation type, perpetrator group, and gender category</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Keep violation (cool), perpetrator (warm earth), and gender (vivid) palettes in their distinct chromatic families</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Use the Navy Sequential Scale for choropleth maps; Teal as secondary when two maps appear on one page</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Maintain color consistency across all products produced in the same reporting period</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Use #0D1F3C or #1A3260 for all header, panel, and footer backgrounds</div>
+    </div>
+    <div class="dont-box">
+      <div class="dod-title"><div class="dod-icon">✗</div>Color — Don't</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use red (#CC0000, #FF0000 or any variant) as a data encoding color</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use yellow, amber, or gold for data encoding — reserved for warning/alert states only</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never repurpose violation colors for non-violation categories in the same document</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use gradient fills on bars, donut segments, or map regions</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never introduce unlisted colors without IM Officer approval</div>
+    </div>
+    <div class="do-box">
+      <div class="dod-title"><div class="dod-icon">✓</div>Typography — Do</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Use IBM Plex Sans exclusively — all weights 300–700 are available and in-scope</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Follow the type scale strictly — sizes and weights are specifications, not suggestions</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Use IBM Plex Sans Condensed for axis labels, side panel text, and space-constrained elements</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Use IBM Plex Mono for all source citations, hex references, and table footnotes</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Apply ALL CAPS with letter-spacing ≥0.1em for all badge and KFI label text</div>
+    </div>
+    <div class="dont-box">
+      <div class="dod-title"><div class="dod-icon">✗</div>Typography — Don't</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never substitute Arial, Calibri, Helvetica, Open Sans, or any system font</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use font sizes below 7pt (9px) in any published or shared output</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never mix more than 2 font families in a single visualization panel</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use regular weight (400) for chart titles — minimum SemiBold (600)</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use decorative, serif, or script fonts in any HRD output</div>
+    </div>
+    <div class="do-box">
+      <div class="dod-title"><div class="dod-icon">✓</div>Charts &amp; Maps — Do</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Include source line on every single chart, including in multi-chart dashboard layouts</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Label data values directly on or adjacent to bars, lines, and donut segments</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Always include a legend — never rely on chart title alone to identify categories</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Annotate notable spikes or events (e.g., Abiemnom, March 2026) directly on trend charts</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Include the UN boundary disclaimer on every geographic visualization</div>
+    </div>
+    <div class="dont-box">
+      <div class="dod-title"><div class="dod-icon">✗</div>Charts &amp; Maps — Don't</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use 3D charts — they distort proportional reading and violate data integrity</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use pie charts with more than 5 segments — use donut or horizontal bar instead</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never truncate Y-axes without explicit annotation explaining the non-zero baseline</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never size map bubbles by radius — always by area to preserve proportional accuracy</div>
+      <div class="dod-item"><div class="dod-bullet"></div>Never use drop shadows, glows, or decorative effects on any data element</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<div class="page-footer">
+  <div class="pf-left">
+    <strong>UNMISS Human Rights Division</strong><br>
+    Data Visualization Guidelines · Version 2.0 · April 2026<br>
+    Maintained by: Information Management Unit, HRD
+  </div>
+  <div class="pf-right">
+    Review cycle: Annual<br>
+    Queries: HRD IM Officer<br>
+    Supersedes all prior informal guidance
+  </div>
+</div>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     CHARTS + INTERACTIONS
+═══════════════════════════════════════════ -->
+<script>
+/* ── UTILS ── */
+function copyHex(hex, name) {
+  navigator.clipboard.writeText(hex).then(() => {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-text').textContent = name + ' · ' + hex + ' copied';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+
+/* ── PROGRESS BAR ── */
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('progressBar');
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  el.style.transform = `scaleX(${pct / 100})`;
+});
+
+/* ── HERO LINE ANIMATE ── */
+setTimeout(() => {
+  document.getElementById('heroLine').style.height = '120px';
+}, 300);
+
+/* ── SCROLL REVEAL ── */
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 60);
+    }
+  });
+}, { threshold: 0.06 });
+document.querySelectorAll('.section').forEach(s => revealObs.observe(s));
+
+/* ── ACTIVE NAV ── */
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const navObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-30% 0px -65% 0px' });
+sections.forEach(s => navObs.observe(s));
+
+/* ── MOCKUP BAR ANIMATION ── */
+const barObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.bar-fill[data-target]').forEach(b => {
+        setTimeout(() => { b.style.width = b.dataset.target + '%'; }, 400);
+      });
+      barObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.mock-wrap').forEach(m => barObs.observe(m));
+
+/* ── PALETTE SHOWCASE CLICK TO COPY ── */
+document.querySelectorAll('.ps-item[data-hex]').forEach(el => {
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', () => copyHex(el.dataset.hex, el.dataset.name));
+});
+
+/* ── COUNTER ANIMATION ── */
+function animateCounter(el, target, duration = 900) {
+  let start = 0, startTime = null;
+  const step = (timestamp) => {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(ease * target).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const counterObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.kf-num').forEach(el => {
+        const n = parseInt(el.textContent.replace(/,/g,''));
+        if (!isNaN(n)) animateCounter(el, n);
+      });
+      counterObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('.mock-kf').forEach(m => counterObs.observe(m));
+
+/* ── CHART.JS CONFIG ── */
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.color = '#8898A8';
+Chart.defaults.plugins.legend.display = false;
+const grid = 'rgba(212,220,232,0.5)';
+
+/* ── CHART 1: Grouped violation bar ── */
+new Chart(document.getElementById('c1'), {
+  type: 'bar',
+  data: {
+    labels: ['Killed', 'Injured', 'Abducted', 'CRSV'],
+    datasets: [
+      { label:'Q1-2025', data:[739,679,149,40], backgroundColor:'#0D1F3C', borderRadius:3, barPercentage:.8 },
+      { label:'Q4-2025', data:[406,264,106,54], backgroundColor:'#78909C', borderRadius:3, barPercentage:.8 },
+      { label:'Q1-2026', data:[737,456,93,69], backgroundColor:'#0277BD', borderRadius:3, barPercentage:.8 }
+    ]
+  },
+  options: { responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:10, boxHeight:10, padding:14 } } },
+    scales:{ x:{ grid:{display:false}, ticks:{font:{size:11}} }, y:{ grid:{color:grid}, ticks:{font:{size:10}} } }
+  }
+});
+
+/* ── CHART 2: Perpetrator donut ── */
+new Chart(document.getElementById('c2'), {
+  type: 'doughnut',
+  data: {
+    labels: ['CBM / CDGs', 'Conventional Parties', 'Unidentified / Opportunistic'],
+    datasets: [{ data:[910,375,70], backgroundColor:['#B45309','#374151','#78909C'], borderWidth:3, borderColor:'#fff', hoverOffset:6 }]
+  },
+  options: { responsive:true, maintainAspectRatio:false, cutout:'62%',
+    plugins: { legend:{ display:true, position:'bottom', labels:{ font:{size:11}, boxWidth:10, boxHeight:10, padding:12 } },
+      tooltip:{ callbacks:{ label:(c) => { const t=c.dataset.data.reduce((a,b)=>a+b,0); return ` ${c.label}: ${c.parsed.toLocaleString()} (${Math.round(c.parsed*100/t)}%)`; } } } }
+  }
+});
+
+/* ── CHART 3: State ranked horizontal bar ── */
+new Chart(document.getElementById('c3'), {
+  type:'bar',
+  data:{
+    labels:['Jonglei','Warrap','Unity','Central Equatoria','Western Equatoria','Lakes','W. Bahr el Ghazal','Eastern Equatoria','Upper Nile'],
+    datasets:[{ data:[444,260,258,126,97,96,60,11,3],
+      backgroundColor:['#1A3260','#00695C','#0277BD','#4527A0','#2E7D32','#C2185B','#6A1B4D','#558B2F','#0097A7'],
+      borderRadius:3, barPercentage:.75 }]
+  },
+  options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c => ` ${c.parsed.x.toLocaleString()} victims` } } },
+    scales:{ x:{ grid:{color:grid}, ticks:{font:{size:11}} }, y:{ grid:{display:false}, ticks:{font:{family:"'IBM Plex Sans Condensed', sans-serif", size:11}} } }
+  }
+});
+
+/* ── CHART 4: Monthly trend ── */
+const mths=['Jan 23','Feb 23','Mar 23','Apr 23','May 23','Jun 23','Jul 23','Aug 23','Sep 23','Oct 23','Nov 23','Dec 23','Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+const cbm=[415,132,300,271,264,222,80,229,168,183,230,325,207,250,339,311,293,279,110,132,313,249,126,292,222,318,523,287,551,198,538,157,136,196,144,47,181,263,466];
+const conv=[20,18,12,40,15,24,30,71,26,15,43,14,21,36,20,15,85,44,95,36,19,58,52,40,20,69,104,187,173,78,51,130,56,152,193,72,199,75,101];
+const unid=[3,3,17,0,32,3,6,7,6,23,6,21,15,9,16,7,19,9,30,22,35,10,21,15,317,10,24,12,11,21,47,19,19,12,7,7,21,10,39];
+new Chart(document.getElementById('c4'), {
+  type:'line',
+  data:{ labels:mths, datasets:[
+    { label:'CBM/CDGs', data:cbm, borderColor:'#B45309', backgroundColor:'rgba(180,83,9,.08)', fill:true, tension:.3, pointRadius:1.5, borderWidth:2.5 },
+    { label:'Conventional', data:conv, borderColor:'#374151', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:2, borderDash:[5,3] },
+    { label:'Unidentified', data:unid, borderColor:'#78909C', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:1.5, borderDash:[2,4] }
+  ]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:14, boxHeight:8, padding:14 } } },
+    scales:{ x:{ grid:{display:false}, ticks:{ font:{size:9,family:"'IBM Plex Sans Condensed', sans-serif"}, maxRotation:45, autoSkip:true, maxTicksLimit:20 } },
+      y:{ grid:{color:grid}, ticks:{font:{size:10}} } }
+  }
+});
+
+/* ── CHART 5: Gender stacked ── */
+new Chart(document.getElementById('c5'), {
+  type:'bar',
+  data:{ labels:['Killed','Injured','Abducted','CRSV'],
+    datasets:[
+      { label:'Men', data:[541,422,55,0], backgroundColor:'#0277BD', stack:'s', borderRadius:2 },
+      { label:'Women', data:[125,20,8,60], backgroundColor:'#C2185B', stack:'s', borderRadius:2 },
+      { label:'Boys', data:[53,10,19,0], backgroundColor:'#4FC3F7', stack:'s', borderRadius:2 },
+      { label:'Girls', data:[18,4,11,9], backgroundColor:'#F48FB1', stack:'s', borderRadius:2 }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:10, boxHeight:10, padding:12 } } },
+    scales:{ x:{ stacked:true, grid:{display:false}, ticks:{font:{size:11}} }, y:{ stacked:true, grid:{color:grid}, ticks:{font:{size:10}} } }
+  }
+});
+
+/* ── CHART 6: Three-period comparison ── */
+new Chart(document.getElementById('c6'), {
+  type:'bar',
+  data:{ labels:['Killed','Injured','Abducted','CRSV','Total'],
+    datasets:[
+      { label:'Q1-2025', data:[739,679,149,40,1607], backgroundColor:'#0D1F3C', borderRadius:3 },
+      { label:'Q4-2025', data:[406,264,106,54,830], backgroundColor:'#78909C', borderRadius:3 },
+      { label:'Q1-2026', data:[737,456,93,69,1355], backgroundColor:'#0277BD', borderRadius:3 }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:10, boxHeight:10, padding:12 } } },
+    scales:{ x:{ grid:{display:false}, ticks:{font:{size:11}} }, y:{ grid:{color:grid}, ticks:{font:{size:10}} } }
+  }
+});
+
+/* ── Mobile nav ── */
+(function(){
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const toggle = document.getElementById('menuToggle');
+  const mq = window.matchMedia('(max-width:960px)');
+
+  function setOpen(open) {
+    document.body.classList.toggle('nav-open', open);
+    if (backdrop) { backdrop.hidden = !open; backdrop.classList.toggle('visible', open); }
+    if (toggle) { toggle.setAttribute('aria-expanded', open); }
+  }
+  function closeNav(){ setOpen(false); }
+  toggle?.addEventListener('click', () => setOpen(!document.body.classList.contains('nav-open')));
+  backdrop?.addEventListener('click', closeNav);
+  document.querySelectorAll('.sidebar .nav-link').forEach(a => {
+    a.addEventListener('click', () => { if (mq.matches) closeNav(); });
+  });
+  window.addEventListener('resize', () => { if (!mq.matches) closeNav(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeNav();
+  });
+})();
+
+/* ── Nav filter ── */
+(function(){
+  const input = document.getElementById('navSearch');
+  if (!input) return;
+  const links = Array.from(document.querySelectorAll('.sidebar .nav-link'));
+  const labels = document.querySelectorAll('.sidebar .nav-group-label');
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    links.forEach(a => {
+      const t = a.textContent.toLowerCase();
+      a.style.display = !q || t.includes(q) ? '' : 'none';
+    });
+    labels.forEach(lbl => {
+      const sec = lbl.nextElementSibling;
+      let vis = false;
+      let el = sec;
+      while (el && !el.classList?.contains('nav-group-label')) {
+        if (el.classList?.contains('nav-link') && el.style.display !== 'none') vis = true;
+        el = el.nextElementSibling;
+      }
+      lbl.style.display = vis || !q ? '' : 'none';
+    });
+  });
+})();
+
+/* ── Back to top ── */
+(function(){
+  const btn = document.getElementById('backToTop');
+  if (!btn) return;
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 420);
+  }, { passive: true });
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+})();
+
+</script>
+</body>
+</html>
