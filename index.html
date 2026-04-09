@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+</script>
 <title>UNMISS HRD — Data Visualization Guidelines v2.0</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -145,6 +148,11 @@ body{
   background:var(--navy);
   padding:72px 64px 60px;
   position:relative;overflow:hidden;
+  min-height:100vh;
+  min-height:100dvh;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
 }
 .hero-grid{
   display:grid;
@@ -152,6 +160,7 @@ body{
   gap:0 24px;
   align-items:start;
   max-width:900px;
+  width:100%;
   margin-left:auto;
   margin-right:auto;
 }
@@ -989,6 +998,8 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
     <input type="search" class="nav-search" id="navSearch" placeholder="Filter sections…" autocomplete="off" aria-label="Filter navigation">
   </div>
   <div class="nav-section">
+    <div class="nav-group-label">Introduction</div>
+    <a class="nav-link active" href="#top"><span class="nav-num">00</span>Overview</a>
     <div class="nav-group-label">Color System</div>
     <a class="nav-link" href="#brand"><span class="nav-num">01</span>Brand Colors</a>
     <a class="nav-link" href="#violations"><span class="nav-num">02</span>Violation Types</a>
@@ -2124,19 +2135,43 @@ const revealObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.06 });
 document.querySelectorAll('.section').forEach(s => revealObs.observe(s));
 
-/* ── ACTIVE NAV ── */
-const sections = document.querySelectorAll('.section[id]');
+/* ── ACTIVE NAV (scroll spy: hero + sections so Overview stays active at top) ── */
+const navSpyIds = ['top','brand','violations','perpetrators','gender','states','sequential','typography','typescale','viztypes','mandatory','samples','maps','infographic','mockup','dosdonts'];
 const navLinks = document.querySelectorAll('.nav-link');
-const navObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      navLinks.forEach(l => {
-        l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id);
-      });
-    }
+function updateActiveNav() {
+  const y = window.scrollY + Math.min(window.innerHeight * 0.32, 280);
+  let activeId = 'top';
+  for (const id of navSpyIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    if (top <= y) activeId = id;
+  }
+  navLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + activeId);
   });
-}, { rootMargin: '-30% 0px -65% 0px' });
-sections.forEach(s => navObs.observe(s));
+}
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+window.addEventListener('resize', updateActiveNav);
+function scrollToDocumentStart() {
+  if (!window.location.hash || window.location.hash === '#') {
+    window.scrollTo(0, 0);
+  }
+}
+function initNavStart() {
+  scrollToDocumentStart();
+  updateActiveNav();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNavStart);
+} else {
+  initNavStart();
+}
+window.addEventListener('load', initNavStart);
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) scrollToDocumentStart();
+  updateActiveNav();
+});
 
 /* ── MOCKUP BAR ANIMATION ── */
 const barObs = new IntersectionObserver((entries) => {
