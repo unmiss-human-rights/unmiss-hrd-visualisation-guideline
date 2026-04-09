@@ -103,11 +103,12 @@ html[data-theme="dark"] body::before{
   position:fixed;
   z-index:500;
   top:50%;
-  right:20px;
+  left:20px;
+  right:auto;
   transform:translateY(-50%);
   display:flex;
   flex-direction:column;
-  align-items:flex-end;
+  align-items:flex-start;
   gap:10px;
   pointer-events:none;
 }
@@ -198,7 +199,7 @@ html[data-theme="dark"] .float-nav__head{background:rgba(0,0,0,.25)}
   color:var(--text);
   background:rgba(45,107,228,.08);
   border-color:rgba(45,107,228,.12);
-  transform:translateX(-2px);
+  transform:translateX(2px);
 }
 .nav-link:hover::before{height:60%}
 .nav-link.active{
@@ -273,13 +274,14 @@ html[data-theme="dark"] .nav-link.active{color:var(--text)}
 }
 .nav-tooltip.is-visible{opacity:1;transform:translate(0,0) scale(1)}
 .nav-tooltip::after{
-  content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);
-  border:6px solid transparent;border-left-color:rgba(13,31,60,.94);
+  content:'';position:absolute;left:-6px;top:50%;transform:translateY(-50%);
+  border:6px solid transparent;border-right-color:rgba(13,31,60,.94);
 }
 
 @media (prefers-reduced-motion:reduce){
   .float-nav__panel,.nav-link,.float-nav__fab,.nav-tooltip{transition:none}
   .nav-link:hover{transform:none}
+  .hero-scroll-cue__arrow{animation:none !important}
 }
 
 /* ─────────────────────────────────────────────
@@ -287,10 +289,10 @@ html[data-theme="dark"] .nav-link.active{color:var(--text)}
 ───────────────────────────────────────────── */
 .main{margin-left:0;min-height:100vh;overflow-anchor:none;position:relative;z-index:1}
 @media(min-width:961px){
-  .hero{padding-right:calc(64px + 300px)}
-  .section{padding-right:calc(64px + 300px)}
-  .page-footer{padding-right:calc(64px + 300px)}
-  .page-footer-credit{padding:20px calc(64px + 300px) 28px 64px}
+  .hero{padding-left:calc(64px + 300px)}
+  .section{padding-left:calc(64px + 300px)}
+  .page-footer{padding-left:calc(64px + 300px)}
+  .page-footer-credit{padding:20px 64px 28px calc(64px + 300px)}
 }
 
 /* ─────────────────────────────────────────────
@@ -353,6 +355,47 @@ html[data-theme="dark"] .nav-link.active{color:var(--text)}
 }
 .hero-chip:hover{background:rgba(255,255,255,.13);color:rgba(255,255,255,.9)}
 .hero-chip-dot{width:6px;height:6px;border-radius:50%;background:var(--blue-acc)}
+
+.hero-scroll-cue{
+  position:absolute;
+  left:50%;
+  bottom:max(24px,env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:8px 16px 12px;
+  border:none;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  color:rgba(255,255,255,.55);
+  font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  font-family:inherit;cursor:pointer;
+  transition:color .25s ease,background .25s ease,border-color .25s ease,transform .2s ease,opacity .35s ease,visibility .35s;
+}
+.hero-scroll-cue:hover{
+  color:rgba(255,255,255,.95);
+  background:rgba(255,255,255,.12);
+  border-color:rgba(126,173,238,.35);
+}
+.hero-scroll-cue__arrow{
+  width:22px;height:22px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:2.2;
+  animation:heroCueBounce 2s ease-in-out infinite;
+}
+.hero-scroll-cue:hover .hero-scroll-cue__arrow{color:#7EADEE}
+.hero-scroll-cue--gone{
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .4s ease,visibility .4s;
+}
+@keyframes heroCueBounce{
+  0%,100%{transform:translateY(0);opacity:.85}
+  50%{transform:translateY(6px);opacity:1}
+}
 
 /* ─────────────────────────────────────────────
    PROGRESS BAR (top of page on scroll)
@@ -1025,14 +1068,14 @@ table.type-tbl tbody tr:hover{background:rgba(45,107,228,.04)}
 @media(max-width:960px){
   .main{margin-left:0;padding-right:0;padding-bottom:max(88px,env(safe-area-inset-bottom))}
   .float-nav{
-    top:auto;bottom:20px;right:16px;left:auto;
+    top:auto;bottom:20px;left:16px;right:auto;
     transform:none;
     flex-direction:column-reverse;
   }
   .float-nav__fab{display:inline-flex}
   .float-nav__panel{
     position:fixed;
-    right:16px;bottom:76px;
+    left:16px;bottom:76px;
     width:min(340px,calc(100vw - 32px));
     max-height:min(70vh,560px);
     transform:translateY(12px) scale(.96);
@@ -1063,7 +1106,7 @@ table.type-tbl tbody tr:hover{background:rgba(45,107,228,.04)}
 .brand-logo--mock{max-height:48px;width:auto;object-fit:contain}
 
 .back-to-top{
-  position:fixed;left:20px;bottom:24px;z-index:350;
+  position:fixed;right:20px;left:auto;bottom:24px;z-index:350;
   width:46px;height:46px;border-radius:50%;
   border:1px solid var(--border);background:var(--float-glass);
   backdrop-filter:blur(12px);
@@ -1079,7 +1122,7 @@ html[data-theme="dark"] .back-to-top{color:var(--text)}
 
 .hero-grid{grid-template-columns:auto 1fr}
 @media(max-width:960px){
-  .back-to-top{left:16px;bottom:20px}
+  .back-to-top{right:16px;left:auto;bottom:20px}
   .section{padding:40px 28px}
   .hero{padding:32px 24px 40px;padding-top:28px}
   .hero-grid{grid-template-columns:1fr;gap:16px}
@@ -1189,6 +1232,10 @@ html[data-theme="dark"] .back-to-top{color:var(--text)}
       </div>
     </div>
   </div>
+  <button type="button" class="hero-scroll-cue" id="heroScrollCue" aria-label="Scroll down to the guidelines">
+    <span>Scroll</span>
+    <svg class="hero-scroll-cue__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </button>
 </div>
 
 <!-- ══════════════════════════════════════════  01 BRAND IDENTITY -->
@@ -2642,9 +2689,10 @@ new Chart(document.getElementById('c6'), {
       tip.classList.add('is-visible');
       const tr = tip.getBoundingClientRect();
       const lr = e.currentTarget.getBoundingClientRect();
-      let left = lr.left - tr.width - 12;
+      let left = lr.right + 12;
       let top = lr.top + lr.height / 2 - tr.height / 2;
-      if (left < 12) left = lr.right + 12;
+      if (left + tr.width > window.innerWidth - 12) left = lr.left - tr.width - 12;
+      if (left < 12) left = 12;
       tip.style.left = Math.min(left, window.innerWidth - tr.width - 12) + 'px';
       tip.style.top = Math.max(8, Math.min(top, window.innerHeight - tr.height - 8)) + 'px';
     });
@@ -2684,6 +2732,19 @@ new Chart(document.getElementById('c6'), {
       lbl.style.display = vis || !q ? '' : 'none';
     });
   });
+})();
+
+/* ── Hero scroll cue ── */
+(function(){
+  const cue = document.getElementById('heroScrollCue');
+  const target = document.getElementById('brand-identity');
+  if (!cue || !target) return;
+  cue.addEventListener('click', function () {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  window.addEventListener('scroll', function () {
+    cue.classList.toggle('hero-scroll-cue--gone', window.scrollY > 100);
+  }, { passive: true });
 })();
 
 /* ── Back to top ── */
