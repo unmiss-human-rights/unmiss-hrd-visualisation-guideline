@@ -63,6 +63,7 @@ body{
   color:var(--text);
   background:var(--bg);
   overflow-x:hidden;
+  overflow-anchor:none;
 }
 
 /* ─────────────────────────────────────────────
@@ -139,7 +140,7 @@ body{
 /* ─────────────────────────────────────────────
    MAIN LAYOUT
 ───────────────────────────────────────────── */
-.main{margin-left:230px;min-height:100vh}
+.main{margin-left:230px;min-height:100vh;overflow-anchor:none}
 
 /* ─────────────────────────────────────────────
    HERO
@@ -153,6 +154,7 @@ body{
   box-sizing:border-box;
   display:flex;
   align-items:center;
+  overflow-anchor:none;
 }
 .hero-grid{
   display:grid;
@@ -221,6 +223,7 @@ body{
   background:var(--white);
   opacity:0;transform:translateY(20px);
   transition:opacity .6s ease,transform .6s ease;
+  overflow-anchor:none;
 }
 .section.visible{opacity:1;transform:translateY(0)}
 .section:nth-child(even){background:var(--bg)}
@@ -2169,15 +2172,35 @@ document.querySelectorAll('.section').forEach(s => revealObs.observe(s));
 /* ── ACTIVE NAV (scroll spy: hero + sections so Overview stays active at top) ── */
 const navSpyIds = ['overview','brand-identity','brand','violations','perpetrators','gender','states','sequential','typography','typescale','viztypes','mandatory','samples','maps','infographic','mockup','dosdonts'];
 const navLinks = document.querySelectorAll('.nav-link');
+const navPageLoadTs = Date.now();
+let userNavigatedScroll = false;
+['wheel','touchstart','touchmove','keydown'].forEach(function (ev) {
+  window.addEventListener(ev, function () { userNavigatedScroll = true; }, { passive: true });
+});
+navLinks.forEach(function (a) {
+  a.addEventListener('click', function () { userNavigatedScroll = true; });
+});
+function navFromHashWhileLoading() {
+  const raw = (window.location.hash || '').replace(/^#/, '');
+  if (raw === 'top') return 'overview';
+  if (raw && document.getElementById(raw)) return raw;
+  return 'overview';
+}
 function updateActiveNav() {
+  if (document.readyState !== 'complete') {
+    const id = navFromHashWhileLoading();
+    navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+    return;
+  }
   const probe = window.scrollY + Math.min(window.innerHeight * 0.32, 280);
-  const hero = document.getElementById('overview');
-  if (hero) {
-    const heroBottom = hero.getBoundingClientRect().bottom + window.scrollY;
-    if (probe < heroBottom - 2) {
-      navLinks.forEach(l => {
-        l.classList.toggle('active', l.getAttribute('href') === '#overview');
-      });
+  const bi = document.getElementById('brand-identity');
+  if (bi) {
+    let brandTop = bi.getBoundingClientRect().top + window.scrollY;
+    if (brandTop < window.innerHeight * 0.35) {
+      brandTop = Math.max(brandTop, window.innerHeight * 0.85);
+    }
+    if (probe < brandTop) {
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#overview'));
       return;
     }
   }
@@ -2205,6 +2228,11 @@ function scrollToDocumentStart() {
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 }
+function stompSpuriousScrollJump() {
+  if (!shouldStartAtTop() || userNavigatedScroll) return;
+  if (Date.now() - navPageLoadTs > 5500) return;
+  if (window.scrollY > 48) scrollToDocumentStart();
+}
 function initNavStart() {
   scrollToDocumentStart();
   updateActiveNav();
@@ -2216,14 +2244,35 @@ if (document.readyState === 'loading') {
 }
 window.addEventListener('load', () => {
   scrollToDocumentStart();
-  setTimeout(scrollToDocumentStart, 0);
-  setTimeout(scrollToDocumentStart, 100);
+  [0, 50, 100, 250, 400, 600].forEach(function (ms) {
+    setTimeout(function () {
+      if (!userNavigatedScroll) scrollToDocumentStart();
+      updateActiveNav();
+    }, ms);
+  });
   updateActiveNav();
+  const stompIv = setInterval(function () {
+    stompSpuriousScrollJump();
+    if (Date.now() - navPageLoadTs > 5600) clearInterval(stompIv);
+  }, 64);
+  const hero = document.getElementById('overview');
+  if (hero && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(function () {
+      stompSpuriousScrollJump();
+      updateActiveNav();
+    }).observe(hero);
+  }
 });
 window.addEventListener('pageshow', (e) => {
   if (e.persisted || shouldStartAtTop()) scrollToDocumentStart();
   updateActiveNav();
 });
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', function () {
+    stompSpuriousScrollJump();
+    updateActiveNav();
+  });
+}
 
 /* ── MOCKUP BAR ANIMATION ── */
 const barObs = new IntersectionObserver((entries) => {
