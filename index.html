@@ -38,9 +38,9 @@
   --vd: #2E7D32;   /* Arbitrary – forest green     */
 
   /* ── PERPETRATOR PALETTE (warm/neutral — fully distinct) */
-  --pa: #B45309;   /* CBM/CDGs   – dark amber      */
-  --pb: #374151;   /* Conventional – slate         */
-  --pc: #78909C;   /* Unidentified – steel grey    */
+  --pa: #B45309;   /* Community-based militias and CDGs — dark amber */
+  --pb: #374151;   /* Conventional parties and armed groups — slate */
+  --pc: #78909C;   /* Unidentified and/or opportunistic — steel grey */
 
   /* ── GENDER PALETTE (vivid, distinct from both above) */
   --gm: #0277BD;   /* Men   – ocean blue           */
@@ -382,6 +382,16 @@ body{
   border:4px solid transparent;border-top-color:var(--navy);
 }
 .ps-item:hover .ps-item-tooltip{opacity:1}
+.palette-showcase--perp .ps-item-label{
+  text-transform:none;
+  letter-spacing:.03em;
+  font-weight:600;
+  font-size:8px;
+  line-height:1.2;
+  text-align:center;
+  padding:0 3px;
+}
+.palette-showcase--perp .ps-item:nth-child(3) .ps-item-label{font-size:6px;line-height:1.15}
 
 /* ─────────────────────────────────────────────
    SEQUENTIAL SCALE
@@ -1153,29 +1163,29 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
 <div class="section-inner">
   <div class="section-tag">03 · Perpetrator Group Palette</div>
   <h2>Perpetrator Groups — Color System</h2>
-  <p class="section-lead">Three colors in the <strong>warm earth and neutral grey family</strong> — visually in a completely different chromatic region from violations (cool) and gender (vivid). Q1 2026: CBM/CDGs 67% · Conventional 28% · Unidentified 5%.</p>
+  <p class="section-lead">Three colors in the <strong>warm earth and neutral grey family</strong> — visually in a completely different chromatic region from violations (cool) and gender (vivid). Q1 2026: Community-based militias and CDGs 67% · Conventional parties and armed groups 28% · Unidentified and/or opportunistic 5%.</p>
 
   <div class="swatch-grid mt-md" style="grid-template-columns:repeat(3,1fr)">
-    <div class="swatch-card" onclick="copyHex('#B45309','CBM/CDGs')">
+    <div class="swatch-card" onclick="copyHex('#B45309','Community-based militias and CDGs')">
       <div class="swatch-color" style="background:#B45309;height:88px"><div class="copy-indicator">Copy #B45309</div></div>
       <div class="swatch-meta">
-        <div class="swatch-label">Community-based Militias / CDGs</div>
+        <div class="swatch-label">Community-based militias and CDGs</div>
         <div class="swatch-hex">#B45309 · Dark Amber</div>
         <div class="swatch-use">Warm amber-ochre. Not red, not yellow. The dominant perpetrator category. Use heaviest weight.</div>
       </div>
     </div>
-    <div class="swatch-card" onclick="copyHex('#374151','Conventional')">
+    <div class="swatch-card" onclick="copyHex('#374151','Conventional parties and armed groups')">
       <div class="swatch-color" style="background:#374151;height:88px"><div class="copy-indicator">Copy #374151</div></div>
       <div class="swatch-meta">
-        <div class="swatch-label">Conventional Parties &amp; Armed Groups</div>
+        <div class="swatch-label">Conventional parties and armed groups</div>
         <div class="swatch-hex">#374151 · Dark Slate</div>
         <div class="swatch-use">Blue-grey slate. Incl. SSPDF, SPLA-IO, NAS, allied forces. Neutral-cool earth tone.</div>
       </div>
     </div>
-    <div class="swatch-card" onclick="copyHex('#78909C','Unidentified')">
+    <div class="swatch-card" onclick="copyHex('#78909C','Unidentified and/or opportunistic')">
       <div class="swatch-color" style="background:#78909C;height:88px"><div class="copy-indicator">Copy #78909C</div></div>
       <div class="swatch-meta">
-        <div class="swatch-label">Unidentified / Opportunistic</div>
+        <div class="swatch-label">Unidentified and/or opportunistic</div>
         <div class="swatch-hex">#78909C · Steel Grey</div>
         <div class="swatch-use">Medium steel grey. Unknown or opportunistic elements. Lower visual weight reflects smaller share.</div>
       </div>
@@ -1184,18 +1194,18 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
 
   <div class="mt-md">
     <div class="sub-desc">Q1 2026 distribution — bars proportional to victim share</div>
-    <div class="palette-showcase">
-      <div class="ps-item" style="background:#B45309;flex:3" data-name="CBM/CDGs">
-        <div class="ps-item-tooltip">CBM/CDGs · #B45309 · 67%</div>
-        <div class="ps-item-label">COMMUNITY-BASED MILITIAS / CDGs · 67%</div>
+    <div class="palette-showcase palette-showcase--perp">
+      <div class="ps-item" style="background:#B45309;flex:3" data-name="Community-based militias and CDGs">
+        <div class="ps-item-tooltip">Community-based militias and CDGs · #B45309 · 67%</div>
+        <div class="ps-item-label">Community-based militias and CDGs · 67%</div>
       </div>
-      <div class="ps-item" style="background:#374151;flex:1.5" data-name="Conventional">
-        <div class="ps-item-tooltip">Conventional · #374151 · 28%</div>
-        <div class="ps-item-label">CONVENTIONAL · 28%</div>
+      <div class="ps-item" style="background:#374151;flex:1.5" data-name="Conventional parties and armed groups">
+        <div class="ps-item-tooltip">Conventional parties and armed groups · #374151 · 28%</div>
+        <div class="ps-item-label">Conventional parties and armed groups · 28%</div>
       </div>
-      <div class="ps-item" style="background:#78909C;flex:0.4" data-name="Unidentified">
-        <div class="ps-item-tooltip">Unidentified · #78909C · 5%</div>
-        <div class="ps-item-label" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:7px">UNID.</div>
+      <div class="ps-item" style="background:#78909C;flex:0.4" data-name="Unidentified and/or opportunistic">
+        <div class="ps-item-tooltip">Unidentified and/or opportunistic · #78909C · 5%</div>
+        <div class="ps-item-label">Unidentified and/or opportunistic · 5%</div>
       </div>
     </div>
   </div>
@@ -1428,7 +1438,7 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
         </tr>
         <tr>
           <td><strong>Legend Text</strong></td>
-          <td class="type-preview-cell"><span style="font-size:11px;font-weight:500;color:#4A5568">● Community-based Militias</span></td>
+          <td class="type-preview-cell"><span style="font-size:11px;font-weight:500;color:#4A5568">● Community-based militias and CDGs</span></td>
           <td><span class="mono-pill">IBM Plex Sans</span></td>
           <td><span class="w-pill" style="background:#DDE3EE;color:#4A5568">500 Medium</span></td>
           <td>8.5pt / 11px</td>
@@ -1762,7 +1772,7 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
       </div>
       <div class="chart-bd">
         <div style="position:relative;width:100%;height:270px">
-          <canvas id="c2" role="img" aria-label="Donut chart. CBM/CDGs: 910 (67%). Conventional: 375 (28%). Unidentified: 70 (5%)."></canvas>
+          <canvas id="c2" role="img" aria-label="Donut chart. Community-based militias and CDGs: 910 (67%). Conventional parties and armed groups: 375 (28%). Unidentified and/or opportunistic: 70 (5%)."></canvas>
         </div>
       </div>
       <div class="chart-ft">Source: UNMISS HRD · Q1 2026 · Total: 1,355 victims · 203 incidents</div>
@@ -1794,9 +1804,9 @@ body.nav-open .sidebar-backdrop{display:block;opacity:1}
       </div>
       <div class="chart-bd">
         <div class="chart-legend">
-          <div class="lg-item"><div class="lg-swatch" style="background:#B45309"></div>Community-based Militias / CDGs</div>
-          <div class="lg-item"><div class="lg-swatch" style="background:#374151"></div>Conventional Parties &amp; Armed Groups</div>
-          <div class="lg-item"><div class="lg-swatch" style="background:#78909C"></div>Unidentified / Opportunistic</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#B45309"></div>Community-based militias and CDGs</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#374151"></div>Conventional parties and armed groups</div>
+          <div class="lg-item"><div class="lg-swatch" style="background:#78909C"></div>Unidentified and/or opportunistic</div>
         </div>
         <div style="position:relative;width:100%;height:250px">
           <canvas id="c4" role="img" aria-label="Multi-line chart showing monthly victims by perpetrator group, January 2023 to March 2026."></canvas>
@@ -2182,11 +2192,11 @@ new Chart(document.getElementById('c1'), {
 new Chart(document.getElementById('c2'), {
   type: 'doughnut',
   data: {
-    labels: ['CBM / CDGs', 'Conventional Parties', 'Unidentified / Opportunistic'],
+    labels: ['Community-based militias and CDGs', 'Conventional parties and armed groups', 'Unidentified and/or opportunistic'],
     datasets: [{ data:[910,375,70], backgroundColor:['#B45309','#374151','#78909C'], borderWidth:3, borderColor:'#fff', hoverOffset:6 }]
   },
   options: { responsive:true, maintainAspectRatio:false, cutout:'62%',
-    plugins: { legend:{ display:true, position:'bottom', labels:{ font:{size:11}, boxWidth:10, boxHeight:10, padding:12 } },
+    plugins: { legend:{ display:true, position:'bottom', labels:{ font:{size:9}, boxWidth:10, boxHeight:10, padding:8 } },
       tooltip:{ callbacks:{ label:(c) => { const t=c.dataset.data.reduce((a,b)=>a+b,0); return ` ${c.label}: ${c.parsed.toLocaleString()} (${Math.round(c.parsed*100/t)}%)`; } } } }
   }
 });
@@ -2214,12 +2224,12 @@ const unid=[3,3,17,0,32,3,6,7,6,23,6,21,15,9,16,7,19,9,30,22,35,10,21,15,317,10,
 new Chart(document.getElementById('c4'), {
   type:'line',
   data:{ labels:mths, datasets:[
-    { label:'CBM/CDGs', data:cbm, borderColor:'#B45309', backgroundColor:'rgba(180,83,9,.08)', fill:true, tension:.3, pointRadius:1.5, borderWidth:2.5 },
-    { label:'Conventional', data:conv, borderColor:'#374151', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:2, borderDash:[5,3] },
-    { label:'Unidentified', data:unid, borderColor:'#78909C', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:1.5, borderDash:[2,4] }
+    { label:'Community-based militias and CDGs', data:cbm, borderColor:'#B45309', backgroundColor:'rgba(180,83,9,.08)', fill:true, tension:.3, pointRadius:1.5, borderWidth:2.5 },
+    { label:'Conventional parties and armed groups', data:conv, borderColor:'#374151', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:2, borderDash:[5,3] },
+    { label:'Unidentified and/or opportunistic', data:unid, borderColor:'#78909C', backgroundColor:'transparent', fill:false, tension:.3, pointRadius:1.5, borderWidth:1.5, borderDash:[2,4] }
   ]},
   options:{ responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:11}, boxWidth:14, boxHeight:8, padding:14 } } },
+    plugins:{ legend:{ display:true, position:'top', labels:{ font:{size:9}, boxWidth:14, boxHeight:8, padding:10 } } },
     scales:{ x:{ grid:{display:false}, ticks:{ font:{size:9,family:"'IBM Plex Sans Condensed', sans-serif"}, maxRotation:45, autoSkip:true, maxTicksLimit:20 } },
       y:{ grid:{color:grid}, ticks:{font:{size:10}} } }
   }
